@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CYBER-IOT // Control ESP32 & Adafruit IO</title>
+
+  <!-- Tailwind CSS para utilidades responsivas -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fuentes Futuristas de Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       1. VARIABLES DE DISEÑO Y TEMAS (MODO OSCURO / MODO CLARO)
+       ========================================================================== */
+    :root {
+      --font-display: 'Orbitron', sans-serif;
+      --font-ui: 'Rajdhani', sans-serif;
+
+      /* Modo Oscuro (Predeterminado) */
+      --bg-base: #050714;
+      --bg-panel: rgba(11, 16, 38, 0.78);
+      --bg-panel-solid: #0b1026;
+      --bg-input: rgba(5, 8, 22, 0.88);
+      --border-color: rgba(0, 243, 255, 0.28);
+      --border-strong: rgba(0, 243, 255, 0.65);
+
+      --text-primary: #eaf6ff;
+      --text-secondary: #8ea8c3;
+      --text-muted: #526882;
+
+      --neon-cyan: #00f3ff;
+      --neon-cyan-glow: rgba(0, 243, 255, 0.55);
+      --neon-magenta: #ff00ea;
+      --neon-magenta-glow: rgba(255, 0, 234, 0.55);
+      --neon-green: #00ff66;
+      --neon-green-glow: rgba(0, 255, 102, 0.65);
+      --neon-red: #ff2a55;
+      --neon-red-glow: rgba(255, 42, 85, 0.65);
+
+      --led-off-bg: #111827;
+      --led-off-border: #263248;
+      --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    [data-theme="light"] {
+      /* Modo Claro de Alto Contraste */
+      --bg-base: #eef3f9;
+      --bg-panel: rgba(255, 255, 255, 0.88);
+      --bg-panel-solid: #ffffff;
+      --bg-input: rgba(241, 246, 252, 0.96);
+      --border-color: rgba(0, 102, 204, 0.25);
+      --border-strong: rgba(0, 102, 204, 0.65);
+
+      --text-primary: #0b1528;
+      --text-secondary: #3b506b;
+      --text-muted: #6b8099;
+
+      --neon-cyan: #0066cc;
+      --neon-cyan-glow: rgba(0, 102, 204, 0.35);
+      --neon-magenta: #c400b3;
+      --neon-magenta-glow: rgba(196, 0, 179, 0.35);
+      --neon-green: #009e44;
+      --neon-green-glow: rgba(0, 158, 68, 0.45);
+      --neon-red: #d91b42;
+      --neon-red-glow: rgba(217, 27, 66, 0.45);
+
+      --led-off-bg: #d8e1ec;
+      --led-off-border: #b5c4d6;
+      --shadow-card: 0 12px 35px rgba(15, 35, 65, 0.12);
+    }
+
+    /* ==========================================================================
+       2. ESTILOS BASE Y TIPOGRAFÍA
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
+      overflow-x: hidden;
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    .font-cyber {
+      font-family: var(--font-display);
+      letter-spacing: 0.06em;
+    }
+
+    /* ==========================================================================
+       3. CANVAS 3D INTERACTIVO DE FONDO
+       ========================================================================== */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       4. PANELES GLASSMORPHISM CYBERPUNK
+       ========================================================================== */
+    .cyber-panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-card);
+      border-radius: 1rem;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .cyber-panel::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 1.25rem;
+      right: 1.25rem;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), transparent);
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       5. BOTONES PRINCIPALES DE MODO (PANTALLA 1)
+       ========================================================================== */
+    .mode-card-btn {
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      border: 2px solid var(--border-color);
+      border-radius: 1.25rem;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+                  border-color 0.28s ease,
+                  box-shadow 0.28s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mode-card-btn.cyan-accent:hover,
+    .mode-card-btn.cyan-accent:focus-visible {
+      transform: translateY(-6px) scale(1.01);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 28px var(--neon-cyan-glow), inset 0 0 18px var(--neon-cyan-glow);
+    }
+
+    .mode-card-btn.magenta-accent:hover,
+    .mode-card-btn.magenta-accent:focus-visible {
+      transform: translateY(-6px) scale(1.01);
+      border-color: var(--neon-magenta);
+      box-shadow: 0 0 28px var(--neon-magenta-glow), inset 0 0 18px var(--neon-magenta-glow);
+    }
+
+    .mode-card-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* ==========================================================================
+       6. LUCES INDICADORAS (LEDS VIRTUALES HARDWARE INDUSTRIAL)
+       ========================================================================== */
+    .virtual-led {
+      width: 92px;
+      height: 92px;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 32% 30%, rgba(255,255,255,0.22), var(--led-off-bg) 70%);
+      border: 4px solid var(--led-off-border);
+      box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.28s ease;
+      position: relative;
+    }
+
+    @media (min-width: 640px) {
+      .virtual-led {
+        width: 112px;
+        height: 112px;
+      }
+    }
+
+    /* LED ON ACTIVO (Verde Neón Intenso - Relé 1) */
+    .virtual-led.led-on.active {
+      background: radial-gradient(circle at 35% 30%, #ffffff 0%, #80ffb3 28%, var(--neon-green) 72%, #007a33 100%);
+      border-color: #b8ffd6;
+      box-shadow:
+        0 0 20px var(--neon-green),
+        0 0 48px var(--neon-green-glow),
+        inset 0 0 14px rgba(255, 255, 255, 0.8);
+      animation: pulse-led-green 2s infinite ease-in-out;
+    }
+
+    /* LED OFF ACTIVO (Rojo/Naranja Neón Intenso - Relé 2) */
+    .virtual-led.led-off.active {
+      background: radial-gradient(circle at 35% 30%, #ffffff 0%, #ff9eb3 28%, var(--neon-red) 72%, #8a0020 100%);
+      border-color: #ffc2cf;
+      box-shadow:
+        0 0 20px var(--neon-red),
+        0 0 48px var(--neon-red-glow),
+        inset 0 0 14px rgba(255, 255, 255, 0.8);
+      animation: pulse-led-red 2s infinite ease-in-out;
+    }
+
+    .virtual-led-label {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 1.15rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      transition: color 0.25s ease, text-shadow 0.25s ease;
+      user-select: none;
+    }
+
+    .virtual-led.active .virtual-led-label {
+      color: #041009;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+    }
+
+    @keyframes pulse-led-green {
+      0%, 100% { box-shadow: 0 0 22px var(--neon-green), 0 0 48px var(--neon-green-glow); }
+      50%      { box-shadow: 0 0 30px var(--neon-green), 0 0 68px var(--neon-green-glow); }
+    }
+
+    @keyframes pulse-led-red {
+      0%, 100% { box-shadow: 0 0 22px var(--neon-red), 0 0 48px var(--neon-red-glow); }
+      50%      { box-shadow: 0 0 30px var(--neon-red), 0 0 68px var(--neon-red-glow); }
+    }
+
+    /* ==========================================================================
+       7. BOTONES DE CONTROL MANUAL (ON / OFF)
+       ========================================================================== */
+    .control-btn {
+      font-family: var(--font-display);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      border-radius: 0.9rem;
+      border: 2px solid transparent;
+      transition: all 0.22s ease;
+      cursor: pointer;
+    }
+
+    .control-btn-on {
+      background: rgba(0, 255, 102, 0.12);
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+      box-shadow: 0 0 15px rgba(0, 255, 102, 0.18);
+    }
+
+    .control-btn-on:hover:not(:disabled) {
+      background: var(--neon-green);
+      color: #041208;
+      box-shadow: 0 0 28px var(--neon-green-glow);
+      transform: translateY(-2px);
+    }
+
+    .control-btn-off {
+      background: rgba(255, 42, 85, 0.12);
+      border-color: var(--neon-red);
+      color: var(--neon-red);
+      box-shadow: 0 0 15px rgba(255, 42, 85, 0.18);
+    }
+
+    .control-btn-off:hover:not(:disabled) {
+      background: var(--neon-red);
+      color: #ffffff;
+      box-shadow: 0 0 28px var(--neon-red-glow);
+      transform: translateY(-2px);
+    }
+
+    .control-btn:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .control-btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    /* ==========================================================================
+       8. TRANSICIONES SPA DE PANTALLAS Y MODAL
+       ========================================================================== */
+    .spa-screen {
+      display: none;
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .spa-screen.active {
+      display: block;
+      animation: screenFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes screenFadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Switch Tema Oscuro/Claro */
+    .theme-switch {
+      width: 56px;
+      height: 30px;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 9999px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-switch-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 10px var(--neon-cyan-glow);
+      position: absolute;
+      top: 2.5px;
+      left: 3px;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    [data-theme="light"] .theme-switch-thumb {
+      transform: translateX(25px);
+    }
+
+    /* Display Temperatura Neón */
+    .temp-digital-readout {
+      font-family: var(--font-display);
+      color: var(--neon-cyan);
+      text-shadow: 0 0 18px var(--neon-cyan-glow);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- ========================================================================
+       CANVAS 3D INTERACTIVO DE FONDO (Malla Synthwave + Partículas)
+       ======================================================================== -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ========================================================================
+       CONTENEDOR PRINCIPAL DE LA APLICACIÓN SPA
+       ======================================================================== -->
+  <div class="relative z-10 min-h-screen flex flex-col justify-between max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+
+    <!-- ======================================================================
+         HEADER GLOBAL PERSISTENTE
+         ====================================================================== -->
+    <header class="cyber-panel px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Identidad del Sistema IoT -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center border border-cyan-400/50 bg-cyan-500/10 shadow-inner">
+          <svg class="w-6 h-6" style="color: var(--neon-cyan)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+            <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-cyber text-base sm:text-xl font-bold tracking-wider leading-tight">
+            CYBER<span style="color: var(--neon-cyan)">NODE</span> // ESP-IO
+          </h1>
+          <p class="text-xs sm:text-sm font-semibold tracking-wide" style="color: var(--text-secondary)">
+            TELEMETRÍA & CONTROL ADAFRUIT IO
+          </p>
+        </div>
+      </div>
+
+      <!-- Indicador Pill de Estado + Botón Engranaje (Configuración) -->
+      <div class="flex items-center gap-2.5 sm:gap-3 ml-auto">
+        <div id="connection-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold border transition-all"
+             style="background: var(--bg-input); border-color: var(--border-color);">
+          <span id="connection-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]"></span>
+          <span id="connection-text">DESCONECTADO</span>
+        </div>
+
+        <!-- Botón de Configuración (Engranaje) -->
+        <button id="btn-open-settings" type="button" aria-label="Abrir Configuración"
+                class="p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                style="background: var(--bg-input); border-color: var(--border-strong); color: var(--neon-cyan);">
+          <svg class="w-6 h-6 transition-transform duration-500 hover:rotate-90 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======================================================================
+         CONTENIDO PRINCIPAL (VISTAS SPA)
+         ====================================================================== -->
+    <main class="my-auto py-6 sm:py-10">
+
+      <!-- --------------------------------------------------------------------
+           PANTALLA 1: MENÚ PRINCIPAL DE SELECCIÓN DE MODO
+           -------------------------------------------------------------------- -->
+      <section id="screen-menu" class="spa-screen active">
+        <div class="text-center mb-8 sm:mb-10">
+          <span class="inline-block px-3.5 py-1 rounded-full text-xs font-cyber uppercase tracking-widest mb-3 border"
+                style="border-color: var(--border-strong); color: var(--neon-cyan); background: var(--bg-panel);">
+            NÚCLEO DE OPERACIÓN ESP32 / ESP8266
+          </span>
+          <h2 class="font-cyber text-2xl sm:text-4xl font-black tracking-wide">
+            SELECCIONA MODO DE CONTROL
+          </h2>
+          <p class="mt-2 text-base sm:text-lg max-w-xl mx-auto" style="color: var(--text-secondary)">
+            Elige el protocolo de ejecución. Al seleccionar un modo se actualizará el feed <code class="px-1.5 py-0.5 rounded text-sm font-mono" style="background: var(--bg-input); color: var(--neon-cyan);">modo</code> y conmutará el <strong>Relé 3</strong> en el ESP32.
+          </p>
+        </div>
+
+        <!-- Dos Botones Gigantes Interactivos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+
+          <!-- BOTÓN 1: MODO AUTOMÁTICO (Envía 0 -> Relé 3 OFF -> Pantalla 2) -->
+          <button id="btn-mode-auto" type="button" class="mode-card-btn cyan-accent p-7 sm:p-10 text-left flex flex-col justify-between group">
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center border"
+                     style="border-color: var(--neon-cyan); background: rgba(0, 243, 255, 0.1); color: var(--neon-cyan);">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z" />
+                  </svg>
+                </div>
+                <span class="font-cyber text-xs font-bold px-3 py-1 rounded-lg border"
+                      style="border-color: var(--neon-cyan); color: var(--neon-cyan);">
+                  FEED: 0 | RELÉ 3: OFF
+                </span>
+              </div>
+
+              <h3 class="font-cyber text-2xl sm:text-3xl font-black mb-2 group-hover:translate-x-1 transition-transform"
+                  style="color: var(--neon-cyan)">
+                MODO AUTOMÁTICO
+              </h3>
+              <p class="text-base sm:text-lg leading-relaxed" style="color: var(--text-secondary)">
+                Monitoreo autónomo del promedio <strong>Dallas DS18B20</strong> frente al umbral límite configurable, conmutando automáticamente <strong>Relé 1 (ON)</strong> y <strong>Relé 2 (OFF)</strong>.
+              </p>
+            </div>
+
+            <div class="mt-8 pt-4 border-t flex items-center justify-between font-cyber text-sm font-bold"
+                 style="border-color: var(--border-color); color: var(--neon-cyan);">
+              <span>INICIAR TELEMETRÍA</span>
+              <span class="text-xl transition-transform group-hover:translate-x-2">→</span>
+            </div>
+          </button>
+
+          <!-- BOTÓN 2: MODO MANUAL (Envía 1 -> Relé 3 ON -> Pantalla 3) -->
+          <button id="btn-mode-manual" type="button" class="mode-card-btn magenta-accent p-7 sm:p-10 text-left flex flex-col justify-between group">
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center border"
+                     style="border-color: var(--neon-magenta); background: rgba(255, 0, 234, 0.1); color: var(--neon-magenta);">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                </div>
+                <span class="font-cyber text-xs font-bold px-3 py-1 rounded-lg border"
+                      style="border-color: var(--neon-magenta); color: var(--neon-magenta);">
+                  FEED: 1 | RELÉ 3: ON
+                </span>
+              </div>
+
+              <h3 class="font-cyber text-2xl sm:text-3xl font-black mb-2 group-hover:translate-x-1 transition-transform"
+                  style="color: var(--neon-magenta)">
+                MODO MANUAL
+              </h3>
+              <p class="text-base sm:text-lg leading-relaxed" style="color: var(--text-secondary)">
+                Anulación directa por operador. Activa el <strong>Relé 3</strong> de selección manual y controla directamente <strong>Relé 1 (ON)</strong> y <strong>Relé 2 (OFF)</strong>.
+              </p>
+            </div>
+
+            <div class="mt-8 pt-4 border-t flex items-center justify-between font-cyber text-sm font-bold"
+                 style="border-color: var(--border-color); color: var(--neon-magenta);">
+              <span>ABRIR CONSOLA MANUAL</span>
+              <span class="text-xl transition-transform group-hover:translate-x-2">→</span>
+            </div>
+          </button>
+
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------------------
+           PANTALLA 2: MONITOREO (MODO AUTOMÁTICO)
+           -------------------------------------------------------------------- -->
+      <section id="screen-auto" class="spa-screen">
+        <!-- Barra Superior de Navegación + Botón Configuración Umbral -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <button type="button" data-nav="menu"
+                  class="btn-back inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-cyber text-xs sm:text-sm font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  style="background: var(--bg-panel); border-color: var(--border-strong); color: var(--neon-cyan);">
+            <span>←</span>
+            <span>REGRESAR</span>
+          </button>
+
+          <div class="flex items-center gap-2.5 ml-auto">
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs sm:text-sm font-cyber font-bold"
+                 style="background: var(--bg-panel); border-color: var(--neon-cyan); color: var(--neon-cyan);">
+              <span class="w-2 h-2 rounded-full animate-ping" style="background: var(--neon-cyan)"></span>
+              <span>MODO AUTO (0) • RELÉ 3 OFF</span>
+            </div>
+
+            <!-- Botón Engranaje para Temperatura Límite (Solo en Pantalla 2) -->
+            <button id="btn-open-threshold" type="button" aria-label="Configurar Temperatura Límite"
+                    title="Configurar Temperatura Límite (°C)"
+                    class="p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    style="background: var(--bg-panel); border-color: var(--border-strong); color: var(--neon-cyan);">
+              <svg class="w-6 h-6 transition-transform duration-500 hover:rotate-90 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid Principal de Telemetría -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Tarjeta Display Digital Temperatura Dallas DS18B20 -->
+          <div class="lg:col-span-7 cyber-panel p-6 sm:p-8 flex flex-col justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <span class="text-xs font-cyber uppercase tracking-widest" style="color: var(--text-secondary)">
+                  PROMEDIO SENSORES DIGITALES
+                </span>
+                <h2 class="font-cyber text-xl sm:text-2xl font-bold">
+                  DALLAS DS18B20
+                </h2>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="badge-threshold-display" class="px-3 py-1 rounded-lg text-xs font-cyber font-bold border"
+                      style="background: rgba(255, 0, 234, 0.1); border-color: var(--neon-magenta); color: var(--neon-magenta);">
+                  LÍMITE: 32.0 °C
+                </span>
+                <span class="px-2.5 py-1 rounded text-xs font-mono border"
+                      style="background: var(--bg-input); border-color: var(--border-color); color: var(--neon-cyan);">
+                  feed: <span id="label-feed-dallas">dallas</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Lectura Digital Gigante -->
+            <div class="my-6 py-6 px-4 rounded-2xl border text-center relative overflow-hidden"
+                 style="background: var(--bg-input); border-color: var(--border-color);">
+              <div class="flex items-baseline justify-center gap-2">
+                <span id="dallas-temp-value" class="temp-digital-readout text-5xl sm:text-7xl font-black tracking-tight">
+                  --.-
+                </span>
+                <span class="font-cyber text-2xl sm:text-3xl font-bold" style="color: var(--text-secondary)">
+                  °C
+                </span>
+              </div>
+
+              <!-- Barra Térmica Visual (0°C a 100°C) -->
+              <div class="mt-6 max-w-md mx-auto">
+                <div class="flex justify-between text-xs font-cyber mb-1.5" style="color: var(--text-muted)">
+                  <span>0°C</span>
+                  <span id="bar-threshold-label" style="color: var(--neon-magenta)">Umbral: 32.0°C</span>
+                  <span>100°C</span>
+                </div>
+                <div class="w-full h-3 rounded-full overflow-hidden p-0.5 border relative"
+                     style="background: var(--bg-base); border-color: var(--border-color);">
+                  <div id="dallas-temp-bar" class="h-full rounded-full transition-all duration-500"
+                       style="width: 0%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green), var(--neon-red));"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between text-xs sm:text-sm gap-2" style="color: var(--text-secondary)">
+              <span>Pulsa ⚙ arriba para ajustar la temperatura límite</span>
+              <span id="auto-last-sync" class="font-mono">Última lectura: --:--:--</span>
+            </div>
+          </div>
+
+          <!-- Tarjeta Indicadores Luminosos (Relé 1 ON y Relé 2 OFF) -->
+          <div class="lg:col-span-5 cyber-panel p-6 sm:p-8 flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-cyber uppercase tracking-widest" style="color: var(--text-secondary)">
+                TELEMETRÍA DE RELÉS ESP32
+              </span>
+              <h2 class="font-cyber text-xl sm:text-2xl font-bold mb-1">
+                RELÉ 1 & RELÉ 2
+              </h2>
+              <p class="text-sm" style="color: var(--text-secondary)">
+                Sincronizado con el feed <code class="font-mono" style="color: var(--neon-cyan)" id="label-feed-actuator-auto">estado-luz</code>.
+              </p>
+            </div>
+
+            <!-- Contenedor de las 2 Luces Virtuales Grandes -->
+            <div class="my-8 grid grid-cols-2 gap-4 items-center justify-items-center">
+              <!-- Luz Virtual ON (Relé 1) -->
+              <div class="flex flex-col items-center gap-3">
+                <div class="virtual-led led-on js-led-on" role="status" aria-label="Indicador ON Relé 1">
+                  <span class="virtual-led-label">ON</span>
+                </div>
+                <span class="font-cyber text-xs font-bold tracking-wider" style="color: var(--text-secondary)">
+                  RELÉ 1 (ON)
+                </span>
+              </div>
+
+              <!-- Luz Virtual OFF (Relé 2) -->
+              <div class="flex flex-col items-center gap-3">
+                <div class="virtual-led led-off js-led-off active" role="status" aria-label="Indicador OFF Relé 2">
+                  <span class="virtual-led-label">OFF</span>
+                </div>
+                <span class="font-cyber text-xs font-bold tracking-wider" style="color: var(--text-secondary)">
+                  RELÉ 2 (OFF)
+                </span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl border text-center text-xs sm:text-sm font-semibold"
+                 style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary)">
+              Salida Activa: <strong id="auto-actuator-text" class="font-cyber ml-1" style="color: var(--neon-red)">RELÉ 2 ENCENDIDO / OFF (0)</strong>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------------------
+           PANTALLA 3: CONTROL (MODO MANUAL)
+           -------------------------------------------------------------------- -->
+      <section id="screen-manual" class="spa-screen">
+        <!-- Barra Superior de Navegación -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <button type="button" data-nav="menu"
+                  class="btn-back inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-cyber text-xs sm:text-sm font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  style="background: var(--bg-panel); border-color: var(--border-strong); color: var(--neon-magenta);">
+            <span>←</span>
+            <span>REGRESAR</span>
+          </button>
+
+          <div class="flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs sm:text-sm font-cyber font-bold"
+               style="background: var(--bg-panel); border-color: var(--neon-magenta); color: var(--neon-magenta);">
+            <span class="w-2 h-2 rounded-full animate-ping" style="background: var(--neon-magenta)"></span>
+            <span>MODO MANUAL (1) • RELÉ 3 ON</span>
+          </div>
+        </div>
+
+        <!-- Panel Central de Control Manual -->
+        <div class="cyber-panel p-6 sm:p-10 max-w-4xl mx-auto">
+          <div class="text-center mb-8">
+            <span class="text-xs font-cyber uppercase tracking-widest" style="color: var(--text-secondary)">
+              INTERFAZ DE MANDO DIRECTO // FEED: <span id="label-feed-actuator-manual" style="color: var(--neon-cyan)">estado-luz</span>
+            </span>
+            <h2 class="font-cyber text-2xl sm:text-3xl font-black mt-1">
+              CONTROL DE RELÉ 1 Y RELÉ 2
+            </h2>
+            <p class="text-sm sm:text-base mt-1" style="color: var(--text-secondary)">
+              Pulsa <strong>ON</strong> (activa Relé 1) o <strong>OFF</strong> (activa Relé 2). Las luces están sincronizadas con la Pantalla 2.
+            </p>
+          </div>
+
+          <!-- Dos Grupos Simétricos: [Botón ON + Luz ON (Relé 1)] y [Botón OFF + Luz OFF (Relé 2)] -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+
+            <!-- GRUPO ON (RELÉ 1) -->
+            <div class="p-6 rounded-2xl border flex flex-col items-center justify-between gap-6"
+                 style="background: var(--bg-input); border-color: var(--border-color);">
+              <div class="text-center">
+                <span class="font-cyber text-xs font-bold tracking-widest" style="color: var(--neon-green)">
+                  CANAL RELÉ 1 (GPIO 25)
+                </span>
+                <h3 class="font-cyber text-lg font-bold mt-0.5">ENCENDER (ON)</h3>
+              </div>
+
+              <!-- Luz Indicadora Virtual ON (Relé 1 - Sincronizada con Pantalla 2) -->
+              <div class="virtual-led led-on js-led-on" role="status" aria-label="Luz indicadora ON Relé 1">
+                <span class="virtual-led-label">ON</span>
+              </div>
+
+              <!-- Botón Táctil ON -->
+              <button id="btn-actuator-on" type="button" class="control-btn control-btn-on w-full py-4 px-6 text-lg sm:text-xl">
+                ACTIVAR ON (1)
+              </button>
+            </div>
+
+            <!-- GRUPO OFF (RELÉ 2) -->
+            <div class="p-6 rounded-2xl border flex flex-col items-center justify-between gap-6"
+                 style="background: var(--bg-input); border-color: var(--border-color);">
+              <div class="text-center">
+                <span class="font-cyber text-xs font-bold tracking-widest" style="color: var(--neon-red)">
+                  CANAL RELÉ 2 (GPIO 26)
+                </span>
+                <h3 class="font-cyber text-lg font-bold mt-0.5">APAGAR (OFF)</h3>
+              </div>
+
+              <!-- Luz Indicadora Virtual OFF (Relé 2 - Sincronizada con Pantalla 2) -->
+              <div class="virtual-led led-off js-led-off active" role="status" aria-label="Luz indicadora OFF Relé 2">
+                <span class="virtual-led-label">OFF</span>
+              </div>
+
+              <!-- Botón Táctil OFF -->
+              <button id="btn-actuator-off" type="button" class="control-btn control-btn-off w-full py-4 px-6 text-lg sm:text-xl">
+                DESACTIVAR OFF (0)
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Barra Inferior de Sincronización -->
+          <div class="mt-8 pt-4 border-t flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm"
+               style="border-color: var(--border-color); color: var(--text-secondary);">
+            <span>Sincronización bidireccional activa (Pantalla 2 ↔ Pantalla 3)</span>
+            <span id="manual-last-sync" class="font-mono">Última sincronización: --:--:--</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ======================================================================
+         FOOTER MINIMALISTA
+         ====================================================================== -->
+    <footer class="text-center text-xs sm:text-sm py-2" style="color: var(--text-muted)">
+      <span class="font-cyber tracking-wider">ESP32 / ESP8266 IOT INTERFACE</span> • API REST v2 ADAFRUIT IO
+    </footer>
+
+  </div>
+
+  <!-- ========================================================================
+       MODAL / PANEL DE CONFIGURACIÓN (ENGRANAJE PANTALLA 1)
+       ======================================================================== -->
+  <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="cyber-panel w-full max-w-lg p-6 sm:p-8 shadow-2xl transform transition-all" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+      <!-- Cabecera Modal -->
+      <div class="flex items-center justify-between pb-4 mb-6 border-b" style="border-color: var(--border-color)">
+        <div class="flex items-center gap-2.5">
+          <span class="w-3 h-3 rounded-full" style="background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan);"></span>
+          <h2 id="modal-title" class="font-cyber text-lg sm:text-xl font-bold">
+            CONFIGURACIÓN DEL SISTEMA
+          </h2>
+        </div>
+        <button id="btn-close-settings" type="button" aria-label="Cerrar Configuración"
+                class="p-2 rounded-lg border text-sm font-bold hover:opacity-80 cursor-pointer"
+                style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary);">
+          ✕
+        </button>
+      </div>
+
+      <!-- Sección 1: Selector Tema Claro / Oscuro -->
+      <div class="flex items-center justify-between p-4 rounded-xl border mb-6"
+           style="background: var(--bg-input); border-color: var(--border-color);">
+        <div>
+          <p class="font-cyber text-sm font-bold">APARIENCIA VISUAL</p>
+          <p id="theme-label-text" class="text-xs sm:text-sm" style="color: var(--text-secondary)">
+            Modo Oscuro Cyberpunk (Activo)
+          </p>
+        </div>
+        <button id="btn-toggle-theme" type="button" class="theme-switch" aria-label="Cambiar entre modo claro y oscuro">
+          <span class="theme-switch-thumb"></span>
+        </button>
+      </div>
+
+      <!-- Sección 2: Credenciales Adafruit IO -->
+      <form id="adafruit-form" class="space-y-4">
+        <div>
+          <label for="input-aio-username" class="block font-cyber text-xs font-bold uppercase tracking-wider mb-1.5"
+                 style="color: var(--neon-cyan)">
+            Usuario de Adafruit IO (Username)
+          </label>
+          <input id="input-aio-username" type="text" autocomplete="username" placeholder="ej. maker_esp32"
+                 class="w-full px-4 py-3 rounded-xl border font-mono text-sm focus:outline-none transition-all"
+                 style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-primary);" />
+        </div>
+
+        <div>
+          <label for="input-aio-key" class="block font-cyber text-xs font-bold uppercase tracking-wider mb-1.5"
+                 style="color: var(--neon-cyan)">
+            Clave API (Active Key / AIO Key)
+          </label>
+          <div class="relative flex items-center">
+            <input id="input-aio-key" type="password" autocomplete="current-password" placeholder="aio_xxxxxxxxxxxxxxxxxxxxxxxx"
+                   class="w-full pl-4 pr-12 py-3 rounded-xl border font-mono text-sm focus:outline-none transition-all"
+                   style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-primary);" />
+            <button id="btn-toggle-key-visibility" type="button" aria-label="Mostrar u ocultar clave API"
+                    class="absolute right-3 p-1.5 rounded-lg text-xs font-bold cursor-pointer"
+                    style="color: var(--text-secondary);">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón Conectar y Estado -->
+        <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2 text-sm font-semibold">
+            <span id="modal-status-dot" class="w-3 h-3 rounded-full bg-rose-500"></span>
+            <span id="modal-status-text" style="color: var(--text-secondary)">Estado: Desconectado</span>
+          </div>
+
+          <button id="btn-connect-aio" type="submit"
+                  class="px-6 py-3 rounded-xl font-cyber text-sm font-bold tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  style="background: var(--neon-cyan); color: #041019; box-shadow: 0 0 20px var(--neon-cyan-glow);">
+            CONECTAR
+          </button>
+        </div>
+      </form>
+
+      <!-- Modo Simulación / Demo para pruebas sin hardware -->
+      <div class="mt-6 pt-4 border-t flex flex-wrap items-center justify-between gap-3"
+           style="border-color: var(--border-color);">
+        <span class="text-xs" style="color: var(--text-secondary)">
+          ¿Sin placa ESP conectada aún?
+        </span>
+        <button id="btn-demo-mode" type="button"
+                class="px-3.5 py-2 rounded-lg font-cyber text-xs font-bold border transition-all hover:opacity-90 cursor-pointer"
+                style="border-color: var(--neon-magenta); color: var(--neon-magenta); background: rgba(255, 0, 234, 0.08);">
+          ACTIVAR SIMULACIÓN DEMO
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL EXCLUSIVO PANTALLA 2: TEMPERATURA LÍMITE (UMBRAL °C)
+       ======================================================================== -->
+  <div id="threshold-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="cyber-panel w-full max-w-md p-6 sm:p-8 shadow-2xl transform transition-all" role="dialog" aria-modal="true" aria-labelledby="threshold-modal-title">
+
+      <!-- Cabecera Modal Umbral -->
+      <div class="flex items-center justify-between pb-4 mb-6 border-b" style="border-color: var(--border-color)">
+        <div class="flex items-center gap-2.5">
+          <span class="w-3 h-3 rounded-full" style="background: var(--neon-magenta); box-shadow: 0 0 10px var(--neon-magenta);"></span>
+          <h2 id="threshold-modal-title" class="font-cyber text-base sm:text-lg font-bold">
+            TEMPERATURA LÍMITE
+          </h2>
+        </div>
+        <button id="btn-close-threshold" type="button" aria-label="Cerrar Configuración de Umbral"
+                class="p-2 rounded-lg border text-sm font-bold hover:opacity-80 cursor-pointer"
+                style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary);">
+          ✕
+        </button>
+      </div>
+
+      <form id="threshold-form" class="space-y-5">
+        <p class="text-sm leading-relaxed" style="color: var(--text-secondary)">
+          Define el umbral de activación en <strong>Modo Automático</strong>. Si el promedio supera este límite, se activa el <strong>Relé 1 (ON)</strong>; de lo contrario, se activa el <strong>Relé 2 (OFF)</strong>.
+        </p>
+
+        <!-- Controles Rápidos y Campo Numérico -->
+        <div>
+          <label for="input-threshold-temp" class="block font-cyber text-xs font-bold uppercase tracking-wider mb-2"
+                 style="color: var(--neon-cyan)">
+            Umbral de Disparo (°C) • Feed: <span id="label-feed-umbral" class="font-mono">umbral</span>
+          </label>
+
+          <div class="flex items-center gap-2.5">
+            <button type="button" id="btn-threshold-minus"
+                    class="px-4 py-3 rounded-xl font-cyber text-base font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    style="background: var(--bg-input); border-color: var(--border-strong); color: var(--neon-cyan);">
+              -1°
+            </button>
+
+            <input id="input-threshold-temp" type="number" step="0.5" min="-55" max="125" required
+                   class="w-full px-4 py-3 rounded-xl border font-cyber text-xl font-bold text-center focus:outline-none transition-all"
+                   style="background: var(--bg-input); border-color: var(--neon-magenta); color: var(--text-primary);" />
+
+            <button type="button" id="btn-threshold-plus"
+                    class="px-4 py-3 rounded-xl font-cyber text-base font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    style="background: var(--bg-input); border-color: var(--border-strong); color: var(--neon-cyan);">
+              +1°
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-3">
+          <button type="button" id="btn-cancel-threshold"
+                  class="px-4 py-3 rounded-xl font-cyber text-xs font-bold border cursor-pointer"
+                  style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary);">
+            CANCELAR
+          </button>
+          <button id="btn-save-threshold" type="submit"
+                  class="px-6 py-3 rounded-xl font-cyber text-xs sm:text-sm font-bold tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  style="background: var(--neon-magenta); color: #ffffff; box-shadow: 0 0 20px var(--neon-magenta-glow);">
+            GUARDAR UMBRAL
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       CONTENEDOR DE NOTIFICACIONES TOAST FUTURISTAS
+       ======================================================================== -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- ========================================================================
+       LÓGICA JAVASCRIPT COMPLETA (ADAFRUIT IO REST API + SPA + CANVAS 3D)
+       ======================================================================== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      /**
+       * ========================================================================
+       * 1. CONFIGURACIÓN DE FEEDS DE ADAFRUIT IO (FÁCIL DE EDITAR)
+       * ========================================================================
+       */
+      const CONFIG = {
+        BASE_URL: 'https://io.adafruit.com/api/v2',
+        POLLING_INTERVAL_MS: 2500,
+        FEEDS: {
+          MODO: 'modo',             // Envío Web -> ESP: 0 = Automático (Relé 3 OFF), 1 = Manual (Relé 3 ON)
+          DALLAS: 'dallas',         // Recepción ESP -> Web: Promedio temperatura DS18B20
+          ACTUADOR: 'estado-luz',   // Bidireccional: 1 = Relé 1 ON / Relé 2 OFF, 0 = Relé 1 OFF / Relé 2 ON
+          UMBRAL: 'umbral'          // Bidireccional: Temperatura límite (°C) para modo automático
+        }
+      };
+
+      /**
+       * ========================================================================
+       * 2. ESTADO GLOBAL DE LA APLICACIÓN
+       * ========================================================================
+       */
+      const state = {
+        theme: localStorage.getItem('cyber_iot_theme') || 'dark',
+        username: localStorage.getItem('cyber_iot_username') || '',
+        aioKey: localStorage.getItem('cyber_iot_key') || '',
+        isConnected: false,
+        isDemoMode: false,
+        currentScreen: 'menu',
+        currentModeValue: null,
+        dallasTemp: null,
+        umbralTemp: parseFloat(localStorage.getItem('cyber_iot_umbral')) || 32.0,
+        actuatorState: 0,
+        pollTimer: null,
+        demoTempBase: 30.8
+      };
+
+      const modalEl = document.getElementById('settings-modal');
+      const thresholdModalEl = document.getElementById('threshold-modal');
+
+      /**
+       * ========================================================================
+       * 3. NOTIFICACIONES TOAST FUTURISTAS
+       * ========================================================================
+       */
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const colors = {
+          info: 'var(--neon-cyan)',
+          success: 'var(--neon-green)',
+          error: 'var(--neon-red)',
+          warning: 'var(--neon-magenta)'
+        };
+        const accent = colors[type] || colors.info;
+
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto px-4 py-3 rounded-xl border shadow-xl text-sm font-semibold transition-all duration-300 transform translate-y-2 opacity-0';
+        toast.style.background = 'var(--bg-panel-solid)';
+        toast.style.borderColor = accent;
+        toast.style.color = 'var(--text-primary)';
+        toast.style.boxShadow = `0 8px 25px rgba(0,0,0,0.45), 0 0 12px ${accent}44`;
+        toast.textContent = message;
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-y-2', 'opacity-0');
+        });
+
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-2');
+          setTimeout(() => toast.remove(), 300);
+        }, 3500);
+      }
+
+      /**
+       * ========================================================================
+       * 4. TEMA CLARO / OSCURO Y NAVEGACIÓN SPA
+       * ========================================================================
+       */
+      function applyTheme(themeName) {
+        state.theme = themeName;
+        document.documentElement.setAttribute('data-theme', themeName);
+        localStorage.setItem('cyber_iot_theme', themeName);
+        const label = document.getElementById('theme-label-text');
+        if (label) {
+          label.textContent = themeName === 'dark'
+            ? 'Modo Oscuro Cyberpunk (Activo)'
+            : 'Modo Claro Alto Contraste (Activo)';
+        }
+      }
+
+      function navigateTo(screenName) {
+        const target = document.getElementById(`screen-${screenName}`);
+        if (!target) return;
+
+        document.querySelectorAll('.spa-screen').forEach(sec => sec.classList.remove('active'));
+        target.classList.add('active');
+        state.currentScreen = screenName;
+      }
+
+      function updateTimestamps() {
+        const now = new Date().toLocaleTimeString();
+        const autoSync = document.getElementById('auto-last-sync');
+        const manualSync = document.getElementById('manual-last-sync');
+        if (autoSync) autoSync.textContent = `Última lectura: ${now}`;
+        if (manualSync) manualSync.textContent = `Última sincronización: ${now}`;
+      }
+
+      /**
+       * ========================================================================
+       * 5. SINCRONIZACIÓN VISUAL DE LEDS, TEMPERATURA Y UMBRAL
+       * ========================================================================
+       */
+      function syncActuatorUI() {
+        const isOn = Number(state.actuatorState) === 1;
+
+        document.querySelectorAll('.js-led-on').forEach(el => {
+          el.classList.toggle('active', isOn);
+        });
+
+        document.querySelectorAll('.js-led-off').forEach(el => {
+          el.classList.toggle('active', !isOn);
+        });
+
+        const autoText = document.getElementById('auto-actuator-text');
+        if (autoText) {
+          autoText.textContent = isOn
+            ? 'RELÉ 1 ENCENDIDO / ON (1)'
+            : 'RELÉ 2 ENCENDIDO / OFF (0)';
+          autoText.style.color = isOn ? 'var(--neon-green)' : 'var(--neon-red)';
+        }
+      }
+
+      function updateThresholdUI(value) {
+        const num = parseFloat(value);
+        if (!isNaN(num)) {
+          state.umbralTemp = num;
+          localStorage.setItem('cyber_iot_umbral', num.toFixed(1));
+          const badge = document.getElementById('badge-threshold-display');
+          const barLabel = document.getElementById('bar-threshold-label');
+          if (badge) badge.textContent = `LÍMITE: ${num.toFixed(1)} °C`;
+          if (barLabel) barLabel.textContent = `Umbral: ${num.toFixed(1)}°C`;
+        }
+      }
+
+      function updateDallasUI(value) {
+        const num = parseFloat(value);
+        const readout = document.getElementById('dallas-temp-value');
+        const bar = document.getElementById('dallas-temp-bar');
+
+        if (!isNaN(num)) {
+          state.dallasTemp = num;
+          if (readout) readout.textContent = num.toFixed(1);
+          const pct = Math.max(0, Math.min(100, num));
+          if (bar) bar.style.width = `${pct}%`;
+        }
+      }
+
+      function updateConnectionUI() {
+        const dot = document.getElementById('connection-dot');
+        const text = document.getElementById('connection-text');
+        const modalDot = document.getElementById('modal-status-dot');
+        const modalText = document.getElementById('modal-status-text');
+
+        if (state.isDemoMode) {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-fuchsia-500 shadow-[0_0_8px_#ff00ea]';
+          text.textContent = 'MODO DEMO';
+          modalDot.className = 'w-3 h-3 rounded-full bg-fuchsia-500';
+          modalText.textContent = 'Estado: Simulación Demo Activa';
+        } else if (state.isConnected) {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#00ff66]';
+          text.textContent = `CONECTADO (${state.username})`;
+          modalDot.className = 'w-3 h-3 rounded-full bg-emerald-400';
+          modalText.textContent = `Estado: Conectado como ${state.username}`;
+        } else {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]';
+          text.textContent = 'DESCONECTADO';
+          modalDot.className = 'w-3 h-3 rounded-full bg-rose-500';
+          modalText.textContent = 'Estado: Desconectado';
+        }
+      }
+
+      /**
+       * ========================================================================
+       * 6. COMUNICACIÓN CON ADAFRUIT IO REST API
+       * ========================================================================
+       */
+      function hasCredentials() {
+        return Boolean(state.username && state.username.trim() && state.aioKey && state.aioKey.trim());
+      }
+
+      async function validateAdafruitConnection(username, aioKey) {
+        const res = await fetch(`${CONFIG.BASE_URL}/${encodeURIComponent(username)}`, {
+          method: 'GET',
+          headers: { 'X-AIO-Key': aioKey }
+        });
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: Credenciales inválidas o usuario no encontrado.`);
+        }
+        return await res.json();
+      }
+
+      async function fetchLastFeedValue(feedKey) {
+        const url = `${CONFIG.BASE_URL}/${encodeURIComponent(state.username)}/feeds/${encodeURIComponent(feedKey)}/data/last`;
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { 'X-AIO-Key': state.aioKey }
+        });
+        if (!res.ok) {
+          throw new Error(`No se pudo leer el feed "${feedKey}" (${res.status})`);
+        }
+        const data = await res.json();
+        return data.value;
+      }
+
+      async function sendFeedValue(feedKey, value) {
+        if (state.isDemoMode) {
+          if (feedKey === CONFIG.FEEDS.MODO) {
+            state.currentModeValue = Number(value);
+          } else if (feedKey === CONFIG.FEEDS.ACTUADOR) {
+            state.actuatorState = Number(value);
+            syncActuatorUI();
+            updateTimestamps();
+          } else if (feedKey === CONFIG.FEEDS.UMBRAL) {
+            updateThresholdUI(value);
+            if (state.currentScreen === 'auto' && state.dallasTemp !== null) {
+              state.actuatorState = state.dallasTemp > state.umbralTemp ? 1 : 0;
+              syncActuatorUI();
+            }
+          }
+          return true;
+        }
+
+        if (!hasCredentials()) {
+          showToast('Configura tu Usuario y Clave API de Adafruit IO primero (Engranaje ⚙).', 'warning');
+          openSettingsModal();
+          return false;
+        }
+
+        try {
+          const url = `${CONFIG.BASE_URL}/${encodeURIComponent(state.username)}/feeds/${encodeURIComponent(feedKey)}/data`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-AIO-Key': state.aioKey
+            },
+            body: JSON.stringify({ value: String(value) })
+          });
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status} al enviar a "${feedKey}". Verifica que el feed exista.`);
+          }
+          return true;
+        } catch (err) {
+          console.error('[Adafruit POST Error]:', err);
+          showToast(err.message, 'error');
+          return false;
+        }
+      }
+
+      async function pollTelemetry() {
+        if (state.isDemoMode) {
+          state.demoTempBase += (Math.random() - 0.48) * 0.45;
+          state.demoTempBase = Math.max(18, Math.min(45, state.demoTempBase));
+          updateDallasUI(state.demoTempBase);
+
+          if (state.currentScreen === 'auto') {
+            state.actuatorState = state.demoTempBase > state.umbralTemp ? 1 : 0;
+          }
+          syncActuatorUI();
+          updateTimestamps();
+          return;
+        }
+
+        if (!state.isConnected || !hasCredentials()) return;
+
+        try {
+          const [dallasRes, actuatorRes, umbralRes] = await Promise.allSettled([
+            fetchLastFeedValue(CONFIG.FEEDS.DALLAS),
+            fetchLastFeedValue(CONFIG.FEEDS.ACTUADOR),
+            fetchLastFeedValue(CONFIG.FEEDS.UMBRAL)
+          ]);
+
+          if (dallasRes.status === 'fulfilled') {
+            updateDallasUI(dallasRes.value);
+          }
+
+          if (actuatorRes.status === 'fulfilled') {
+            const parsedState = Number(actuatorRes.value) === 1 ? 1 : 0;
+            state.actuatorState = parsedState;
+            syncActuatorUI();
+          }
+
+          if (umbralRes.status === 'fulfilled' && !thresholdModalEl.classList.contains('flex')) {
+            updateThresholdUI(umbralRes.value);
+          }
+
+          updateTimestamps();
+        } catch (err) {
+          console.warn('[Polling Warning]:', err);
+        }
+      }
+
+      function startPolling() {
+        if (state.pollTimer) clearInterval(state.pollTimer);
+        pollTelemetry();
+        state.pollTimer = setInterval(pollTelemetry, CONFIG.POLLING_INTERVAL_MS);
+      }
+
+      /**
+       * ========================================================================
+       * 7. CONTROL DE MODALES Y EVENTOS DE INTERFAZ
+       * ========================================================================
+       */
+      function openSettingsModal() {
+        document.getElementById('input-aio-username').value = state.username;
+        document.getElementById('input-aio-key').value = state.aioKey;
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
+      }
+
+      function closeSettingsModal() {
+        modalEl.classList.add('hidden');
+        modalEl.classList.remove('flex');
+      }
+
+      function openThresholdModal() {
+        document.getElementById('input-threshold-temp').value = state.umbralTemp.toFixed(1);
+        thresholdModalEl.classList.remove('hidden');
+        thresholdModalEl.classList.add('flex');
+      }
+
+      function closeThresholdModal() {
+        thresholdModalEl.classList.add('hidden');
+        thresholdModalEl.classList.remove('flex');
+      }
+
+      // Nombres de feeds visibles en UI
+      document.getElementById('label-feed-dallas').textContent = CONFIG.FEEDS.DALLAS;
+      document.getElementById('label-feed-actuator-auto').textContent = CONFIG.FEEDS.ACTUADOR;
+      document.getElementById('label-feed-actuator-manual').textContent = CONFIG.FEEDS.ACTUADOR;
+      document.getElementById('label-feed-umbral').textContent = CONFIG.FEEDS.UMBRAL;
+
+      // Modal Configuración Principal (Engranaje)
+      document.getElementById('btn-open-settings').addEventListener('click', openSettingsModal);
+      document.getElementById('btn-close-settings').addEventListener('click', closeSettingsModal);
+      modalEl.addEventListener('click', (e) => {
+        if (e.target === modalEl) closeSettingsModal();
+      });
+
+      // Switch Tema Claro / Oscuro
+      document.getElementById('btn-toggle-theme').addEventListener('click', () => {
+        applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+      });
+
+      // Mostrar / Ocultar AIO Key
+      document.getElementById('btn-toggle-key-visibility').addEventListener('click', () => {
+        const keyInput = document.getElementById('input-aio-key');
+        keyInput.type = keyInput.type === 'password' ? 'text' : 'password';
+      });
+
+      // Formulario Conectar Adafruit IO
+      document.getElementById('adafruit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = document.getElementById('input-aio-username').value.trim();
+        const key = document.getElementById('input-aio-key').value.trim();
+
+        if (!user || !key) {
+          showToast('Por favor ingresa tu Usuario y Clave API de Adafruit IO.', 'warning');
+          return;
+        }
+
+        const btn = document.getElementById('btn-connect-aio');
+        const originalText = btn.textContent;
+        btn.textContent = 'CONECTANDO...';
+        btn.disabled = true;
+
+        try {
+          await validateAdafruitConnection(user, key);
+          state.username = user;
+          state.aioKey = key;
+          state.isConnected = true;
+          state.isDemoMode = false;
+
+          localStorage.setItem('cyber_iot_username', user);
+          localStorage.setItem('cyber_iot_key', key);
+
+          updateConnectionUI();
+          startPolling();
+          showToast(`¡Conectado exitosamente a Adafruit IO (${user})!`, 'success');
+          closeSettingsModal();
+        } catch (err) {
+          state.isConnected = false;
+          updateConnectionUI();
+          showToast(err.message, 'error');
+        } finally {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      });
+
+      // Botón Modo Simulación Demo
+      document.getElementById('btn-demo-mode').addEventListener('click', () => {
+        state.isDemoMode = true;
+        state.isConnected = false;
+        updateConnectionUI();
+        startPolling();
+        showToast('Modo Simulación Demo activado. Puedes navegar y probar todos los controles.', 'info');
+        closeSettingsModal();
+      });
+
+      // Botón Pantalla 1 -> Modo Automático (Envía 0 -> Relé 3 OFF -> Pantalla 2)
+      document.getElementById('btn-mode-auto').addEventListener('click', async () => {
+        if (!hasCredentials() && !state.isDemoMode) {
+          showToast('Ingresa tus credenciales de Adafruit IO o activa el Modo Demo.', 'warning');
+          openSettingsModal();
+          return;
+        }
+        const ok = await sendFeedValue(CONFIG.FEEDS.MODO, 0);
+        if (ok) {
+          showToast('Modo Automático activado (0 enviado -> Relé 3 OFF).', 'success');
+          navigateTo('auto');
+          pollTelemetry();
+        }
+      });
+
+      // Botón Pantalla 1 -> Modo Manual (Envía 1 -> Relé 3 ON -> Pantalla 3)
+      document.getElementById('btn-mode-manual').addEventListener('click', async () => {
+        if (!hasCredentials() && !state.isDemoMode) {
+          showToast('Ingresa tus credenciales de Adafruit IO o activa el Modo Demo.', 'warning');
+          openSettingsModal();
+          return;
+        }
+        const ok = await sendFeedValue(CONFIG.FEEDS.MODO, 1);
+        if (ok) {
+          showToast('Modo Manual activado (1 enviado -> Relé 3 ON).', 'success');
+          navigateTo('manual');
+          pollTelemetry();
+        }
+      });
+
+      // Botones Regresar (Pantallas 2 y 3 -> Pantalla 1)
+      document.querySelectorAll('.btn-back').forEach(btn => {
+        btn.addEventListener('click', () => {
+          navigateTo('menu');
+        });
+      });
+
+      // Modal Temperatura Límite (Pantalla 2)
+      document.getElementById('btn-open-threshold').addEventListener('click', openThresholdModal);
+      document.getElementById('btn-close-threshold').addEventListener('click', closeThresholdModal);
+      document.getElementById('btn-cancel-threshold').addEventListener('click', closeThresholdModal);
+      thresholdModalEl.addEventListener('click', (e) => {
+        if (e.target === thresholdModalEl) closeThresholdModal();
+      });
+
+      document.getElementById('btn-threshold-minus').addEventListener('click', () => {
+        const input = document.getElementById('input-threshold-temp');
+        const current = parseFloat(input.value) || state.umbralTemp;
+        input.value = Math.max(-55, current - 1).toFixed(1);
+      });
+
+      document.getElementById('btn-threshold-plus').addEventListener('click', () => {
+        const input = document.getElementById('input-threshold-temp');
+        const current = parseFloat(input.value) || state.umbralTemp;
+        input.value = Math.min(125, current + 1).toFixed(1);
+      });
+
+      document.getElementById('threshold-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('input-threshold-temp');
+        const newLimit = parseFloat(input.value);
+
+        if (isNaN(newLimit) || newLimit < -55 || newLimit > 125) {
+          showToast('Ingresa una temperatura límite válida entre -55°C y 125°C.', 'warning');
+          return;
+        }
+
+        const btnSave = document.getElementById('btn-save-threshold');
+        const originalText = btnSave.textContent;
+        btnSave.textContent = 'ENVIANDO...';
+        btnSave.disabled = true;
+
+        const ok = await sendFeedValue(CONFIG.FEEDS.UMBRAL, newLimit.toFixed(1));
+        if (ok) {
+          updateThresholdUI(newLimit);
+          showToast(`Temperatura límite actualizada a ${newLimit.toFixed(1)} °C.`, 'success');
+          closeThresholdModal();
+          pollTelemetry();
+        }
+
+        btnSave.textContent = originalText;
+        btnSave.disabled = false;
+      });
+
+      // Pantalla 3 -> Control Manual ON (1) y OFF (0)
+      document.getElementById('btn-actuator-on').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-actuator-on');
+        btn.disabled = true;
+        const ok = await sendFeedValue(CONFIG.FEEDS.ACTUADOR, 1);
+        if (ok) {
+          state.actuatorState = 1;
+          syncActuatorUI();
+          updateTimestamps();
+          showToast('Comando ON (1) enviado -> Relé 1 ACTIVADO.', 'success');
+        }
+        btn.disabled = false;
+      });
+
+      document.getElementById('btn-actuator-off').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-actuator-off');
+        btn.disabled = true;
+        const ok = await sendFeedValue(CONFIG.FEEDS.ACTUADOR, 0);
+        if (ok) {
+          state.actuatorState = 0;
+          syncActuatorUI();
+          updateTimestamps();
+          showToast('Comando OFF (0) enviado -> Relé 2 ACTIVADO.', 'info');
+        }
+        btn.disabled = false;
+      });
+
+      /**
+       * ========================================================================
+       * 8. FONDO 3D INTERACTIVO EN CANVAS
+       * ========================================================================
+       */
+      function initCyberBackground() {
+        const canvas = document.getElementById('bg-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let width = (canvas.width = window.innerWidth);
+        let height = (canvas.height = window.innerHeight);
+        let gridOffset = 0;
+        let mouseX = width / 2;
+        let mouseY = height / 2;
+
+        window.addEventListener('resize', () => {
+          width = canvas.width = window.innerWidth;
+          height = canvas.height = window.innerHeight;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        });
+
+        const particles = Array.from({ length: 45 }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 2 + 0.8,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5
+        }));
+
+        function render() {
+          ctx.clearRect(0, 0, width, height);
+          const isDark = state.theme === 'dark';
+          const lineColor = isDark ? 'rgba(0, 243, 255, 0.14)' : 'rgba(0, 102, 204, 0.12)';
+          const particleColor = isDark ? 'rgba(255, 0, 234, 0.55)' : 'rgba(196, 0, 179, 0.45)';
+
+          const horizon = height * 0.58 + (mouseY - height / 2) * 0.04;
+          const vanishX = width / 2 + (mouseX - width / 2) * 0.08;
+
+          ctx.strokeStyle = lineColor;
+          ctx.lineWidth = 1;
+
+          for (let i = -12; i <= 12; i++) {
+            ctx.beginPath();
+            ctx.moveTo(vanishX + i * 40, horizon);
+            ctx.lineTo(width / 2 + i * 240, height);
+            ctx.stroke();
+          }
+
+          gridOffset = (gridOffset + 0.6) % 36;
+          for (let y = horizon; y < height; y += 36) {
+            const ratio = Math.max(0, (y - horizon) / (height - horizon));
+            const yPos = y + gridOffset * ratio;
+            ctx.beginPath();
+            ctx.moveTo(0, yPos);
+            ctx.lineTo(width, yPos);
+            ctx.stroke();
+          }
+
+          ctx.fillStyle = particleColor;
+          particles.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > width) p.vx *= -1;
+            if (p.y < 0 || p.y > height) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          requestAnimationFrame(render);
+        }
+
+        render();
+      }
+
+      /**
+       * ========================================================================
+       * 9. INICIALIZACIÓN INMEDIATA
+       * ========================================================================
+       */
+      applyTheme(state.theme);
+      updateThresholdUI(state.umbralTemp);
+      initCyberBackground();
+      syncActuatorUI();
+
+      if (hasCredentials()) {
+        validateAdafruitConnection(state.username, state.aioKey)
+          .then(() => {
+            state.isConnected = true;
+            updateConnectionUI();
+            startPolling();
+          })
+          .catch(() => {
+            state.isConnected = false;
+            updateConnectionUI();
+          });
+      } else {
+        updateConnectionUI();
+      }
+    });
+  </script>
+</body>
+</html>
