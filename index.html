@@ -4,104 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CYBER-IOT // Control ESP32 & Adafruit IO</title>
-
-  <!-- Tailwind CSS para utilidades responsivas -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Fuentes Futuristas de Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ==========================================================================
-       1. VARIABLES DE DISEÑO Y TEMAS (MODO OSCURO / MODO CLARO)
+       VARIABLES DE TEMA (OSCURO CYBERPUNK / CLARO NEÓN ALTO CONTRASTE)
        ========================================================================== */
     :root {
-      --font-display: 'Orbitron', sans-serif;
-      --font-ui: 'Rajdhani', sans-serif;
-
-      /* Modo Oscuro (Predeterminado) */
-      --bg-base: #050714;
-      --bg-panel: rgba(11, 16, 38, 0.72);
-      --bg-panel-solid: #0b1026;
-      --bg-input: rgba(5, 8, 22, 0.85);
+      --bg-primary: #060913;
+      --bg-secondary: rgba(13, 19, 38, 0.78);
+      --bg-card: rgba(16, 24, 48, 0.85);
+      --bg-input: rgba(6, 10, 22, 0.9);
+      --text-primary: #e6f4ff;
+      --text-secondary: #8ba3c7;
       --border-color: rgba(0, 243, 255, 0.28);
-      --border-strong: rgba(0, 243, 255, 0.65);
-
-      --text-primary: #eaf6ff;
-      --text-secondary: #8ea8c3;
-      --text-muted: #526882;
-
       --neon-cyan: #00f3ff;
-      --neon-cyan-glow: rgba(0, 243, 255, 0.55);
-      --neon-magenta: #ff00ea;
-      --neon-magenta-glow: rgba(255, 0, 234, 0.55);
+      --neon-magenta: #ff007f;
       --neon-green: #00ff66;
-      --neon-green-glow: rgba(0, 255, 102, 0.65);
       --neon-red: #ff2a55;
-      --neon-red-glow: rgba(255, 42, 85, 0.65);
-
-      --led-off-bg: #111827;
-      --led-off-border: #263248;
+      --neon-amber: #ffae00;
+      --glow-cyan: 0 0 12px rgba(0, 243, 255, 0.55), 0 0 28px rgba(0, 243, 255, 0.25);
+      --glow-magenta: 0 0 12px rgba(255, 0, 127, 0.55), 0 0 28px rgba(255, 0, 127, 0.25);
+      --glow-green: 0 0 18px rgba(0, 255, 102, 0.8), 0 0 42px rgba(0, 255, 102, 0.45);
+      --glow-red: 0 0 18px rgba(255, 42, 85, 0.8), 0 0 42px rgba(255, 42, 85, 0.45);
       --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.65);
     }
 
     [data-theme="light"] {
-      /* Modo Claro de Alto Contraste */
-      --bg-base: #eef3f9;
-      --bg-panel: rgba(255, 255, 255, 0.82);
-      --bg-panel-solid: #ffffff;
-      --bg-input: rgba(241, 246, 252, 0.95);
-      --border-color: rgba(0, 102, 204, 0.25);
-      --border-strong: rgba(0, 102, 204, 0.65);
-
-      --text-primary: #0b1528;
-      --text-secondary: #3b506b;
-      --text-muted: #6b8099;
-
-      --neon-cyan: #0066cc;
-      --neon-cyan-glow: rgba(0, 102, 204, 0.35);
-      --neon-magenta: #c400b3;
-      --neon-magenta-glow: rgba(196, 0, 179, 0.35);
-      --neon-green: #009e44;
-      --neon-green-glow: rgba(0, 158, 68, 0.45);
-      --neon-red: #d91b42;
-      --neon-red-glow: rgba(217, 27, 66, 0.45);
-
-      --led-off-bg: #d8e1ec;
-      --led-off-border: #b5c4d6;
-      --shadow-card: 0 12px 35px rgba(15, 35, 65, 0.12);
+      --bg-primary: #eef4fb;
+      --bg-secondary: rgba(255, 255, 255, 0.85);
+      --bg-card: rgba(255, 255, 255, 0.94);
+      --bg-input: #f4f8fd;
+      --text-primary: #0b132b;
+      --text-secondary: #3a506b;
+      --border-color: rgba(0, 119, 182, 0.32);
+      --neon-cyan: #0077b6;
+      --neon-magenta: #c9184a;
+      --neon-green: #008f39;
+      --neon-red: #d90429;
+      --neon-amber: #d97706;
+      --glow-cyan: 0 4px 16px rgba(0, 119, 182, 0.35);
+      --glow-magenta: 0 4px 16px rgba(201, 24, 74, 0.35);
+      --glow-green: 0 0 18px rgba(0, 143, 57, 0.65), 0 0 32px rgba(0, 143, 57, 0.3);
+      --glow-red: 0 0 18px rgba(217, 4, 41, 0.65), 0 0 32px rgba(217, 4, 41, 0.3);
+      --shadow-card: 0 10px 30px rgba(11, 19, 43, 0.12);
     }
 
-    /* ==========================================================================
-       2. ESTILOS BASE Y TIPOGRAFÍA
-       ========================================================================== */
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      background-color: var(--bg-base);
+      font-family: 'Rajdhani', sans-serif;
+      background-color: var(--bg-primary);
       color: var(--text-primary);
-      font-family: var(--font-ui);
+      min-height: 100vh;
       overflow-x: hidden;
       transition: background-color 0.35s ease, color 0.35s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
-    .font-cyber {
-      font-family: var(--font-display);
-      letter-spacing: 0.06em;
-    }
-
-    /* ==========================================================================
-       3. CANVAS 3D INTERACTIVO DE FONDO
-       ========================================================================== */
-    #bg-canvas {
+    /* Fondo 3D Canvas */
+    #cyber-canvas {
       position: fixed;
       inset: 0;
       width: 100%;
@@ -110,1053 +80,1188 @@
       pointer-events: none;
     }
 
-    /* ==========================================================================
-       4. PANELES GLASSMORPHISM CYBERPUNK
-       ========================================================================== */
-    .cyber-panel {
-      background: var(--bg-panel);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-card);
-      border-radius: 1rem;
+    /* Contenedor Principal */
+    .app-shell {
       position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 980px;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Barra superior de estado */
+    .top-status-bar {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 940px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 18px;
+      z-index: 10;
+      box-shadow: var(--shadow-card);
+    }
+
+    .brand-tag {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 2px;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--neon-red);
+      box-shadow: var(--glow-red);
       transition: all 0.3s ease;
     }
 
-    .cyber-panel::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 1.25rem;
-      right: 1.25rem;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), transparent);
-      opacity: 0.75;
+    .status-pill.connected .status-dot {
+      background: var(--neon-green);
+      box-shadow: var(--glow-green);
     }
 
-    /* ==========================================================================
-       5. BOTONES PRINCIPALES DE MODO (PANTALLA 1)
-       ========================================================================== */
-    .mode-card-btn {
-      background: var(--bg-panel);
-      backdrop-filter: blur(14px);
-      border: 2px solid var(--border-color);
-      border-radius: 1.25rem;
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-                  border-color 0.28s ease,
-                  box-shadow 0.28s ease;
+    /* Pantallas SPA */
+    .screen {
+      display: none;
+      width: 100%;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 36px 28px;
+      margin-top: 56px;
+      box-shadow: var(--shadow-card);
+      animation: fadeSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Encabezados de Pantalla */
+    .screen-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      gap: 12px;
+    }
+
+    .screen-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.35rem, 3vw, 1.9rem);
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-align: center;
+      flex: 1;
+    }
+
+    .screen-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      margin-top: -18px;
+      margin-bottom: 30px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Botones Icono (Engranaje / Regresar) */
+    .icon-btn {
+      background: var(--bg-input);
+      color: var(--neon-cyan);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--neon-cyan);
+      color: #050811;
+      box-shadow: var(--glow-cyan);
+      transform: translateY(-2px);
+    }
+
+    .gear-btn {
+      padding: 10px 13px;
+      font-size: 1.25rem;
+    }
+
+    .gear-btn svg {
+      transition: transform 0.4s ease;
+    }
+
+    .gear-btn:hover svg {
+      transform: rotate(90deg);
+    }
+
+    /* Pantalla 1: Botones Gigantes de Modo */
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 12px;
+    }
+
+    .mode-card-btn {
+      background: var(--bg-input);
+      border: 2px solid var(--neon-cyan);
+      border-radius: 18px;
+      padding: 38px 24px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: var(--text-primary);
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
       position: relative;
       overflow: hidden;
     }
 
-    .mode-card-btn.cyan-accent:hover,
-    .mode-card-btn.cyan-accent:focus-visible {
-      transform: translateY(-6px) scale(1.01);
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 28px var(--neon-cyan-glow), inset 0 0 18px var(--neon-cyan-glow);
-    }
-
-    .mode-card-btn.magenta-accent:hover,
-    .mode-card-btn.magenta-accent:focus-visible {
-      transform: translateY(-6px) scale(1.01);
+    .mode-card-btn.manual {
       border-color: var(--neon-magenta);
-      box-shadow: 0 0 28px var(--neon-magenta-glow), inset 0 0 18px var(--neon-magenta-glow);
     }
 
-    .mode-card-btn:active {
-      transform: scale(0.98);
+    .mode-card-btn:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: var(--glow-cyan);
+      background: rgba(0, 243, 255, 0.08);
     }
 
-    /* ==========================================================================
-       6. LUCES INDICADORAS (LEDS VIRTUALES HARDWARE INDUSTRIAL)
-       ========================================================================== */
-    .virtual-led {
-      width: 92px;
-      height: 92px;
-      border-radius: 9999px;
-      background: radial-gradient(circle at 32% 30%, rgba(255,255,255,0.22), var(--led-off-bg) 70%);
-      border: 4px solid var(--led-off-border);
-      box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.55);
+    .mode-card-btn.manual:hover {
+      box-shadow: var(--glow-magenta);
+      background: rgba(255, 0, 127, 0.08);
+    }
+
+    .mode-card-btn .mode-icon {
+      font-size: 3rem;
+    }
+
+    .mode-card-btn .mode-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .mode-card-btn .mode-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .relay-badge {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid currentColor;
+      opacity: 0.9;
+    }
+
+    /* Pantalla 2: Display Temperatura Dallas DS18B20 */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 740px) {
+      .telemetry-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .temp-panel {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 28px 22px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: all 0.28s ease;
-      position: relative;
+      text-align: center;
     }
 
-    @media (min-width: 640px) {
-      .virtual-led {
-        width: 112px;
-        height: 112px;
-      }
+    .panel-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 1.5px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
     }
 
-    /* LED ON ACTIVO (Verde Neón Intenso) */
-    .virtual-led.led-on.active {
-      background: radial-gradient(circle at 35% 30%, #ffffff 0%, #80ffb3 28%, var(--neon-green) 72%, #007a33 100%);
-      border-color: #b8ffd6;
-      box-shadow:
-        0 0 20px var(--neon-green),
-        0 0 48px var(--neon-green-glow),
-        inset 0 0 14px rgba(255, 255, 255, 0.8);
-      animation: pulse-led-green 2s infinite ease-in-out;
-    }
-
-    /* LED OFF ACTIVO (Rojo/Naranja Neón Intenso) */
-    .virtual-led.led-off.active {
-      background: radial-gradient(circle at 35% 30%, #ffffff 0%, #ff9eb3 28%, var(--neon-red) 72%, #8a0020 100%);
-      border-color: #ffc2cf;
-      box-shadow:
-        0 0 20px var(--neon-red),
-        0 0 48px var(--neon-red-glow),
-        inset 0 0 14px rgba(255, 255, 255, 0.8);
-      animation: pulse-led-red 2s infinite ease-in-out;
-    }
-
-    .virtual-led-label {
-      font-family: var(--font-display);
+    .digital-temp {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(3rem, 7vw, 4.6rem);
       font-weight: 900;
-      font-size: 1.15rem;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      transition: color 0.25s ease, text-shadow 0.25s ease;
-      user-select: none;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+      line-height: 1.1;
+      margin: 8px 0;
     }
 
-    .virtual-led.active .virtual-led-label {
-      color: #041009;
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+    .threshold-info {
+      margin-top: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--neon-amber);
+      background: rgba(255, 174, 0, 0.1);
+      border: 1px solid rgba(255, 174, 0, 0.35);
+      padding: 6px 14px;
+      border-radius: 999px;
     }
 
-    @keyframes pulse-led-green {
-      0%, 100% { box-shadow: 0 0 22px var(--neon-green), 0 0 48px var(--neon-green-glow); }
-      50%      { box-shadow: 0 0 30px var(--neon-green), 0 0 68px var(--neon-green-glow); }
-    }
-
-    @keyframes pulse-led-red {
-      0%, 100% { box-shadow: 0 0 22px var(--neon-red), 0 0 48px var(--neon-red-glow); }
-      50%      { box-shadow: 0 0 30px var(--neon-red), 0 0 68px var(--neon-red-glow); }
-    }
-
-    /* ==========================================================================
-       7. BOTONES DE CONTROL MANUAL (ON / OFF)
-       ========================================================================== */
-    .control-btn {
-      font-family: var(--font-display);
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      border-radius: 0.9rem;
-      border: 2px solid transparent;
-      transition: all 0.22s ease;
-      cursor: pointer;
-    }
-
-    .control-btn-on {
-      background: rgba(0, 255, 102, 0.12);
-      border-color: var(--neon-green);
-      color: var(--neon-green);
-      box-shadow: 0 0 15px rgba(0, 255, 102, 0.18);
-    }
-
-    .control-btn-on:hover:not(:disabled) {
-      background: var(--neon-green);
-      color: #041208;
-      box-shadow: 0 0 28px var(--neon-green-glow);
-      transform: translateY(-2px);
-    }
-
-    .control-btn-off {
-      background: rgba(255, 42, 85, 0.12);
-      border-color: var(--neon-red);
-      color: var(--neon-red);
-      box-shadow: 0 0 15px rgba(255, 42, 85, 0.18);
-    }
-
-    .control-btn-off:hover:not(:disabled) {
-      background: var(--neon-red);
-      color: #ffffff;
-      box-shadow: 0 0 28px var(--neon-red-glow);
-      transform: translateY(-2px);
-    }
-
-    .control-btn:active:not(:disabled) {
-      transform: scale(0.96);
-    }
-
-    .control-btn:disabled {
-      opacity: 0.55;
-      cursor: wait;
-    }
-
-    /* ==========================================================================
-       8. TRANSICIONES SPA DE PANTALLAS Y MODAL
-       ========================================================================== */
-    .spa-screen {
-      display: none;
-      opacity: 0;
-      transform: translateY(12px);
-    }
-
-    .spa-screen.active {
-      display: block;
-      animation: screenFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes screenFadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Switch Tema Oscuro/Claro */
-    .theme-switch {
-      width: 56px;
-      height: 30px;
+    /* LEDs Virtuales (Relé 1 ON / Relé 2 OFF) */
+    .leds-panel {
       background: var(--bg-input);
-      border: 1.5px solid var(--border-strong);
-      border-radius: 9999px;
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .led-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+    }
+
+    .led-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .led-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .led-pin {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .virtual-led {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #1b2234;
+      border: 3px solid #2e3a59;
+      transition: all 0.3s ease;
       position: relative;
-      cursor: pointer;
+    }
+
+    .virtual-led.led-on.active {
+      background: var(--neon-green);
+      border-color: #ffffff;
+      box-shadow: var(--glow-green);
+    }
+
+    .virtual-led.led-off.active {
+      background: var(--neon-red);
+      border-color: #ffffff;
+      box-shadow: var(--glow-red);
+    }
+
+    /* Pantalla 3: Control Manual (2 pares Botón + Luz) */
+    .manual-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .control-unit {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 28px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .big-led {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: #182032;
+      border: 4px solid #2c3856;
       transition: all 0.3s ease;
     }
 
-    .theme-switch-thumb {
-      width: 22px;
-      height: 22px;
-      border-radius: 9999px;
-      background: var(--neon-cyan);
-      box-shadow: 0 0 10px var(--neon-cyan-glow);
-      position: absolute;
-      top: 2.5px;
-      left: 3px;
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    .big-led.led-on.active {
+      background: var(--neon-green);
+      border-color: #eafff2;
+      box-shadow: var(--glow-green);
     }
 
-    [data-theme="light"] .theme-switch-thumb {
-      transform: translateX(25px);
+    .big-led.led-off.active {
+      background: var(--neon-red);
+      border-color: #ffeaf0;
+      box-shadow: var(--glow-red);
     }
 
-    /* Display Temperatura Neón */
-    .temp-digital-readout {
-      font-family: var(--font-display);
+    .action-btn {
+      width: 100%;
+      padding: 16px 20px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      background: transparent;
+    }
+
+    .action-btn.btn-on {
+      color: var(--neon-green);
+      border: 2px solid var(--neon-green);
+    }
+
+    .action-btn.btn-on:hover {
+      background: var(--neon-green);
+      color: #04120a;
+      box-shadow: var(--glow-green);
+    }
+
+    .action-btn.btn-off {
+      color: var(--neon-red);
+      border: 2px solid var(--neon-red);
+    }
+
+    .action-btn.btn-off:hover {
+      background: var(--neon-red);
+      color: #ffffff;
+      box-shadow: var(--glow-red);
+    }
+
+    /* Modales (Configuración Principal y Umbral Temperatura) */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 6, 15, 0.78);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--neon-cyan);
+      box-shadow: var(--glow-cyan);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 480px;
+      padding: 26px;
+      animation: fadeSlideIn 0.25s ease;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .modal-header h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.15rem;
       color: var(--neon-cyan);
-      text-shadow: 0 0 18px var(--neon-cyan-glow);
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.6rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .close-modal:hover {
+      color: var(--neon-red);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .cyber-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .cyber-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .credentials-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .credentials-fields {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .connect-btn {
+      background: var(--neon-cyan);
+      color: #040812;
+      border: none;
+      border-radius: 10px;
+      padding: 0 18px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .connect-btn:hover {
+      box-shadow: var(--glow-cyan);
+      transform: scale(1.03);
+    }
+
+    /* Switch Modo Claro / Oscuro */
+    .theme-switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: var(--bg-input);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 18px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-card);
+      color: var(--neon-cyan);
+      border: 1px solid var(--neon-cyan);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Toast de notificaciones */
+    .toast-box {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg-card);
+      border-left: 4px solid var(--neon-cyan);
+      color: var(--text-primary);
+      padding: 12px 18px;
+      border-radius: 10px;
+      box-shadow: var(--shadow-card);
+      font-weight: 600;
+      z-index: 100;
+      transform: translateY(120%);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .toast-box.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast-box.error {
+      border-left-color: var(--neon-red);
+    }
+
+    .toast-box.success {
+      border-left-color: var(--neon-green);
     }
   </style>
 </head>
-<body class="antialiased selection:bg-cyan-500 selection:text-black">
+<body>
 
-  <!-- ========================================================================
-       CANVAS 3D INTERACTIVO DE FONDO (Malla Synthwave + Partículas)
-       ======================================================================== -->
-  <canvas id="bg-canvas"></canvas>
+  <!-- Fondo 3D Interactivo -->
+  <canvas id="cyber-canvas"></canvas>
 
-  <!-- ========================================================================
-       CONTENEDOR PRINCIPAL DE LA APLICACIÓN SPA
-       ======================================================================== -->
-  <div class="relative z-10 min-h-screen flex flex-col justify-between max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+  <!-- Barra de Estado Superior -->
+  <header class="top-status-bar">
+    <div class="brand-tag">
+      <span>⚡ NEXUS // ESP32</span>
+    </div>
+    <div id="connection-pill" class="status-pill">
+      <span class="status-dot"></span>
+      <span id="connection-text">Desconectado</span>
+    </div>
+  </header>
+
+  <main class="app-shell">
 
     <!-- ======================================================================
-         HEADER GLOBAL PERSISTENTE
+         PANTALLA 1: MENÚ PRINCIPAL Y CONFIGURACIÓN
          ====================================================================== -->
-    <header class="cyber-panel px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
-      <!-- Identidad del Sistema IoT -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center border border-cyan-400/50 bg-cyan-500/10 shadow-inner">
-          <!-- Icono Microchip SVG -->
-          <svg class="w-6 h-6" style="color: var(--neon-cyan)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="6" y="6" width="12" height="12" rx="2"></rect>
-            <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"></path>
-          </svg>
-        </div>
-        <div>
-          <h1 class="font-cyber text-base sm:text-xl font-bold tracking-wider leading-tight">
-            CYBER<span style="color: var(--neon-cyan)">NODE</span> // ESP-IO
-          </h1>
-          <p class="text-xs sm:text-sm font-semibold tracking-wide" style="color: var(--text-secondary)">
-            TELEMETRÍA & CONTROL ADAFRUIT IO
-          </p>
-        </div>
-      </div>
-
-      <!-- Indicador Pill de Estado + Botón Engranaje (Configuración) -->
-      <div class="flex items-center gap-2.5 sm:gap-3 ml-auto">
-        <!-- Badge de Estado de Conexión -->
-        <div id="connection-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold border transition-all"
-             style="background: var(--bg-input); border-color: var(--border-color);">
-          <span id="connection-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]"></span>
-          <span id="connection-text">DESCONECTADO</span>
-        </div>
-
-        <!-- Botón de Configuración (Engranaje) -->
-        <button id="btn-open-settings" type="button" aria-label="Abrir Configuración"
-                class="p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                style="background: var(--bg-input); border-color: var(--border-strong); color: var(--neon-cyan);">
-          <svg class="w-6 h-6 transition-transform duration-500 hover:rotate-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <section id="screen-menu" class="screen active">
+      <div class="screen-header">
+        <div style="width: 44px;"></div>
+        <h1 class="screen-title">Control Central IoT</h1>
+        <button id="btn-open-settings" class="icon-btn gear-btn" title="Configuración Adafruit IO y Tema">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </button>
       </div>
-    </header>
+      <p class="screen-subtitle">Selecciona el modo de operación del microcontrolador ESP32</p>
+
+      <div class="mode-grid">
+        <!-- Botón Modo Automático (Envía 0 -> Relé 3 OFF) -->
+        <button id="btn-mode-auto" class="mode-card-btn auto" type="button">
+          <span class="mode-icon">🤖</span>
+          <span class="mode-name">MODO AUTOMÁTICO</span>
+          <span class="mode-desc">Monitoreo térmico Dallas DS18B20 y disparo automático por umbral</span>
+          <span class="relay-badge">ENVÍA 0 • RELÉ 3 OFF (GPIO 27)</span>
+        </button>
+
+        <!-- Botón Modo Manual (Envía 1 -> Relé 3 ON) -->
+        <button id="btn-mode-manual" class="mode-card-btn manual" type="button">
+          <span class="mode-icon">🎛️</span>
+          <span class="mode-name">MODO MANUAL</span>
+          <span class="mode-desc">Control directo de activación y apagado de relés desde la web</span>
+          <span class="relay-badge">ENVÍA 1 • RELÉ 3 ON (GPIO 27)</span>
+        </button>
+      </div>
+    </section>
 
     <!-- ======================================================================
-         CONTENIDO PRINCIPAL (VISTAS SPA)
+         PANTALLA 2: MONITOREO (MODO AUTOMÁTICO)
          ====================================================================== -->
-    <main class="my-auto py-6 sm:py-10">
+    <section id="screen-auto" class="screen">
+      <div class="screen-header">
+        <button id="btn-back-auto" class="icon-btn" type="button">← Regresar</button>
+        <h2 class="screen-title">Modo Automático</h2>
+        <button id="btn-open-threshold" class="icon-btn gear-btn" type="button" title="Configurar Temperatura Límite">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
 
-      <!-- --------------------------------------------------------------------
-           PANTALLA 1: MENÚ PRINCIPAL DE SELECCIÓN DE MODO
-           -------------------------------------------------------------------- -->
-      <section id="screen-menu" class="spa-screen active">
-        <div class="text-center mb-8 sm:mb-10">
-          <span class="inline-block px-3.5 py-1 rounded-full text-xs font-cyber uppercase tracking-widest mb-3 border"
-                style="border-color: var(--border-strong); color: var(--neon-cyan); background: var(--bg-panel);">
-            NÚCLEO DE OPERACIÓN ESP32 / ESP8266
-          </span>
-          <h2 class="font-cyber text-2xl sm:text-4xl font-black tracking-wide">
-            SELECCIONA MODO DE CONTROL
-          </h2>
-          <p class="mt-2 text-base sm:text-lg max-w-xl mx-auto" style="color: var(--text-secondary)">
-            Elige el protocolo de ejecución. Al seleccionar un modo se actualizará automáticamente el feed <code class="px-1.5 py-0.5 rounded text-sm font-mono" style="background: var(--bg-input); color: var(--neon-cyan);">modo</code> y conmutará el <strong>Relé 3</strong> en el ESP32.
-          </p>
+      <div class="telemetry-grid">
+        <!-- Display Digital Dallas -->
+        <div class="temp-panel">
+          <span class="panel-label">SENSOR DALLAS DS18B20</span>
+          <div id="dallas-value" class="digital-temp">--.- °C</div>
+          <div id="threshold-display" class="threshold-info">Límite de disparo: 32.0 °C</div>
         </div>
 
-        <!-- Dos Botones Gigantes Interactivos -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-
-          <!-- BOTÓN 1: MODO AUTOMÁTICO (Envía 0 -> Pantalla 2) -->
-          <button id="btn-mode-auto" type="button" class="mode-card-btn cyan-accent p-7 sm:p-10 text-left flex flex-col justify-between group">
-            <div>
-              <div class="flex items-center justify-between mb-6">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center border"
-                     style="border-color: var(--neon-cyan); background: rgba(0, 243, 255, 0.1); color: var(--neon-cyan);">
-                  <!-- Icono Sensor / Termómetro Automático -->
-                  <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z" />
-                  </svg>
-                </div>
-                <span class="font-cyber text-xs font-bold px-3 py-1 rounded-lg border"
-                      style="border-color: var(--neon-cyan); color: var(--neon-cyan);">
-                  FEED: 0 | RELÉ 3: OFF
-                </span>
-              </div>
-
-              <h3 class="font-cyber text-2xl sm:text-3xl font-black mb-2 group-hover:translate-x-1 transition-transform"
-                  style="color: var(--neon-cyan)">
-                MODO AUTOMÁTICO
-              </h3>
-              <p class="text-base sm:text-lg leading-relaxed" style="color: var(--text-secondary)">
-                Monitoreo autónomo del promedio <strong>Dallas DS18B20</strong> frente al umbral límite configurable, conmutando automáticamente <strong>Relé 1 (ON)</strong> y <strong>Relé 2 (OFF)</strong>.
-              </p>
+        <!-- Luces Indicadoras Relé 1 y Relé 2 -->
+        <div class="leds-panel">
+          <div class="led-row">
+            <div class="led-meta">
+              <span class="led-title" style="color: var(--neon-green);">LUZ ON</span>
+              <span class="led-pin">Relé 1 • GPIO 25</span>
             </div>
+            <div class="virtual-led led-on sync-led-on"></div>
+          </div>
 
-            <div class="mt-8 pt-4 border-t flex items-center justify-between font-cyber text-sm font-bold"
-                 style="border-color: var(--border-color); color: var(--neon-cyan);">
-              <span>INICIAR TELEMETRÍA</span>
-              <span class="text-xl transition-transform group-hover:translate-x-2">→</span>
+          <div class="led-row">
+            <div class="led-meta">
+              <span class="led-title" style="color: var(--neon-red);">LUZ OFF</span>
+              <span class="led-pin">Relé 2 • GPIO 26</span>
             </div>
-          </button>
-
-          <!-- BOTÓN 2: MODO MANUAL (Envía 1 -> Pantalla 3) -->
-          <button id="btn-mode-manual" type="button" class="mode-card-btn magenta-accent p-7 sm:p-10 text-left flex flex-col justify-between group">
-            <div>
-              <div class="flex items-center justify-between mb-6">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center border"
-                     style="border-color: var(--neon-magenta); background: rgba(255, 0, 234, 0.1); color: var(--neon-magenta);">
-                  <!-- Icono Switch / Control Manual -->
-                  <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                </div>
-                <span class="font-cyber text-xs font-bold px-3 py-1 rounded-lg border"
-                      style="border-color: var(--neon-magenta); color: var(--neon-magenta);">
-                  FEED: 1 | RELÉ 3: ON
-                </span>
-              </div>
-
-              <h3 class="font-cyber text-2xl sm:text-3xl font-black mb-2 group-hover:translate-x-1 transition-transform"
-                  style="color: var(--neon-magenta)">
-                MODO MANUAL
-              </h3>
-              <p class="text-base sm:text-lg leading-relaxed" style="color: var(--text-secondary)">
-                Anulación directa por operador. Activa el <strong>Relé 3</strong> de selección manual y controla directamente <strong>Relé 1 (ON)</strong> y <strong>Relé 2 (OFF)</strong>.
-              </p>
-            </div>
-
-            <div class="mt-8 pt-4 border-t flex items-center justify-between font-cyber text-sm font-bold"
-                 style="border-color: var(--border-color); color: var(--neon-magenta);">
-              <span>ABRIR CONSOLA MANUAL</span>
-              <span class="text-xl transition-transform group-hover:translate-x-2">→</span>
-            </div>
-          </button>
-
-        </div>
-      </section>
-
-      <!-- --------------------------------------------------------------------
-           PANTALLA 2: MONITOREO (MODO AUTOMÁTICO)
-           -------------------------------------------------------------------- -->
-      <section id="screen-auto" class="spa-screen">
-        <!-- Barra Superior de Navegación + Botón Configuración Umbral -->
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <button type="button" data-nav="menu"
-                  class="btn-back inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-cyber text-xs sm:text-sm font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  style="background: var(--bg-panel); border-color: var(--border-strong); color: var(--neon-cyan);">
-            <span>←</span>
-            <span>REGRESAR</span>
-          </button>
-
-          <div class="flex items-center gap-2.5 ml-auto">
-            <div class="flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs sm:text-sm font-cyber font-bold"
-                 style="background: var(--bg-panel); border-color: var(--neon-cyan); color: var(--neon-cyan);">
-              <span class="w-2 h-2 rounded-full animate-ping" style="background: var(--neon-cyan)"></span>
-              <span>MODO AUTO (0) • RELÉ 3 OFF</span>
-            </div>
-
-            <!-- Botón Engranaje para Temperatura Límite (Solo en Pantalla 2) -->
-            <button id="btn-open-threshold" type="button" aria-label="Configurar Temperatura Límite"
-                    title="Configurar Temperatura Límite (°C)"
-                    class="p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                    style="background: var(--bg-panel); border-color: var(--border-strong); color: var(--neon-cyan);">
-              <svg class="w-6 h-6 transition-transform duration-500 hover:rotate-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
+            <div class="virtual-led led-off sync-led-off active"></div>
           </div>
         </div>
-
-        <!-- Grid Principal de Telemetría -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          <!-- Tarjeta Display Digital Temperatura Dallas DS18B20 -->
-          <div class="lg:col-span-7 cyber-panel p-6 sm:p-8 flex flex-col justify-between">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-              <div>
-                <span class="text-xs font-cyber uppercase tracking-widest" style="color: var(--text-secondary)">
-                  PROMEDIO SENSORES DIGITALES
-                </span>
-                <h2 class="font-cyber text-xl sm:text-2xl font-bold">
-                  DALLAS DS18B20
-                </h2>
-              </div>
-              <div class="flex items-center gap-2">
-                <span id="badge-threshold-display" class="px-3 py-1 rounded-lg text-xs font-cyber font-bold border"
-                      style="background: rgba(255, 0, 234, 0.1); border-color: var(--neon-magenta); color: var(--neon-magenta);">
-                  LÍMITE: 32.0 °C
-                </span>
-                <span class="px-2.5 py-1 rounded text-xs font-mono border"
-                      style="background: var(--bg-input); border-color: var(--border-color); color: var(--neon-cyan);">
-                  feed: <span id="label-feed-dallas">dallas</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Lectura Digital Gigante -->
-            <div class="my-6 py-6 px-4 rounded-2xl border text-center relative overflow-hidden"
-                 style="background: var(--bg-input); border-color: var(--border-color);">
-              <div class="flex items-baseline justify-center gap-2">
-                <span id="dallas-temp-value" class="temp-digital-readout text-5xl sm:text-7xl font-black tracking-tight">
-                  --.-
-                </span>
-                <span class="font-cyber text-2xl sm:text-3xl font-bold" style="color: var(--text-secondary)">
-                  °C
-                </span>
-              </div>
-
-              <!-- Barra Térmica Visual (0°C a 100°C) -->
-              <div class="mt-6 max-w-md mx-auto">
-                <div class="flex justify-between text-xs font-cyber mb-1.5" style="color: var(--text-muted)">
-                  <span>0°C</span>
-                  <span id="bar-threshold-label" style="color: var(--neon-magenta)">Umbral: 32.0°C</span>
-                  <span>100°C</span>
-                </div>
-                <div class="w-full h-3 rounded-full overflow-hidden p-0.5 border relative"
-                     style="background: var(--bg-base); border-color: var(--border-color);">
-                  <div id="dallas-temp-bar" class="h-full rounded-full transition-all duration-500"
-                       style="width: 0%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green), var(--neon-red));"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-between text-xs sm:text-sm gap-2" style="color: var(--text-secondary)">
-              <span>Pulsa ⚙ arriba para ajustar la temperatura límite</span>
-              <span id="auto-last-sync" class="font-mono">Última lectura: --:--:--</span>
-            </div>
-          </div>
-
-          <!-- Tarjeta Indicadores Luminosos (Relé 1 ON y Relé 2 OFF) -->
-          <div class="lg:col-span-5 cyber-panel p-6 sm:p-8 flex flex-col justify-between">
-            <div>
-              <span class="text-xs font-cyber uppercase tracking-widest" style="color: var(--text-secondary)">
-                TELEMETRÍA DE RELÉS ESP32
-              </span>
-              <h2 class="font-cyber text-xl sm:text-2xl font-bold mb-1">
-                RELÉ 1 & RELÉ 2
-              </h2>
-              <p class="text-sm" style="color: var(--text-secondary)">
-                Sincronizado con el feed <code class="font-mono" style="color: var(--neon-cyan)" id="label-feed-actuator-auto">estado-luz</code>.
-              </p>
-            </div>
-
-            <!-- Contenedor de las 2 Luces Virtuales Grandes -->
-            <div class="my-8 grid grid-cols-2 gap-4 items-center justify-items-center">
-              <!-- Luz Virtual ON (Relé 1) -->
-              <div class="flex flex-col items-center gap-3">
-                <div class="virtual-led led-on js-led-on" role="status" aria-label="Indicador ON Relé 1">
-                  <span class="virtual-led-label">ON</span>
-                </div>
-                <span class="font-cyber text-xs font-bold tracking-wider" style="color: var(--text-secondary)">
-                  RELÉ 1 (ON)
-                </span>
-              </div>
-
-              <!-- Luz Virtual OFF (Relé 2) -->
-              <div class="flex flex-col items-center gap-3">
-                <div class="virtual-led led-off js-led-off active" role="status" aria-label="Indicador OFF Relé 2">
-                  <span class="virtual-led-label">OFF</span>
-                </div>
-                <span class="font-cyber text-xs font-bold tracking-wider" style="color: var(--text-secondary)">
-                  RELÉ 2 (OFF)
-                </span>
-              </div>
-            </div>
-
-            <div class="p-3 rounded-xl border text-center text-xs sm:text-sm font-semibold"
-                 style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary)">
-              Salida Activa: <strong id="auto-actuator-text" class="font-cyber ml-1" style="color: var(--neon-red)">RELÉ 2 ENCENDIDO / OFF (0)</strong>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- --------------------------------------------------------------------
-           PANTALLA 3: CONTROL (MODO MANUAL)
-           -------------------------------------------------------------------- -->
-      <section id="screen-manual" class="spa-screen">
-        <!-- Barra Superior de Navegación -->
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <button type="button" data-nav="menu"
-                  class="btn-back inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-cyber text-xs sm:text-sm font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  style="background: var(--bg-panel); border-color: var(--border-strong); color: var(--neon-magenta);">
-            <span>←</span>
-            <span>REGRESAR</span>
-          </button>
-
-          <div class="flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs sm:text-sm font-cyber font-bold"
-               style="background: var(--bg-panel); border-color: var(--neon-magenta); color: var(--neon-magenta);">
-            <span class="w-2 h-2 rounded-full animate-ping" style="background: var(--neon-magenta)"></span>
-            <span>MODO MANUAL (1) • RELÉ 3 ON</span>
-          </div>
-        </div>
-
-        <!-- Panel Central de Control Manual -->
-        <div class="cyber-panel p-6 sm:p-10 max-w-4xl mx-auto">
-          <div class="text-center mb-8">
-            <span class="text-xs font-cyber uppercase tracking-widest" style="color: var(--text-secondary)">
-              INTERFAZ DE MANDO DIRECTO // FEED: <span id="label-feed-actuator-manual" style="color: var(--neon-cyan)">estado-luz</span>
-            </span>
-            <h2 class="font-cyber text-2xl sm:text-3xl font-black mt-1">
-              CONTROL DE RELÉ 1 Y RELÉ 2
-            </h2>
-            <p class="text-sm sm:text-base mt-1" style="color: var(--text-secondary)">
-              Pulsa <strong>ON</strong> (activa Relé 1) o <strong>OFF</strong> (activa Relé 2). Las luces están sincronizadas con la Pantalla 2.
-            </p>
-          </div>
-
-          <!-- Dos Grupos Simétricos: [Botón ON + Luz ON (Relé 1)] y [Botón OFF + Luz OFF (Relé 2)] -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-
-            <!-- GRUPO ON (RELÉ 1) -->
-            <div class="p-6 rounded-2xl border flex flex-col items-center justify-between gap-6"
-                 style="background: var(--bg-input); border-color: var(--border-color);">
-              <div class="text-center">
-                <span class="font-cyber text-xs font-bold tracking-widest" style="color: var(--neon-green)">
-                  CANAL RELÉ 1 (GPIO 25)
-                </span>
-                <h3 class="font-cyber text-lg font-bold mt-0.5">ENCENDER (ON)</h3>
-              </div>
-
-              <!-- Luz Indicadora Virtual ON (Relé 1 - Sincronizada con Pantalla 2) -->
-              <div class="virtual-led led-on js-led-on" role="status" aria-label="Luz indicadora ON Relé 1">
-                <span class="virtual-led-label">ON</span>
-              </div>
-
-              <!-- Botón Táctil ON -->
-              <button id="btn-actuator-on" type="button" class="control-btn control-btn-on w-full py-4 px-6 text-lg sm:text-xl">
-                ACTIVAR ON (1)
-              </button>
-            </div>
-
-            <!-- GRUPO OFF (RELÉ 2) -->
-            <div class="p-6 rounded-2xl border flex flex-col items-center justify-between gap-6"
-                 style="background: var(--bg-input); border-color: var(--border-color);">
-              <div class="text-center">
-                <span class="font-cyber text-xs font-bold tracking-widest" style="color: var(--neon-red)">
-                  CANAL RELÉ 2 (GPIO 26)
-                </span>
-                <h3 class="font-cyber text-lg font-bold mt-0.5">APAGAR (OFF)</h3>
-              </div>
-
-              <!-- Luz Indicadora Virtual OFF (Relé 2 - Sincronizada con Pantalla 2) -->
-              <div class="virtual-led led-off js-led-off active" role="status" aria-label="Luz indicadora OFF Relé 2">
-                <span class="virtual-led-label">OFF</span>
-              </div>
-
-              <!-- Botón Táctil OFF -->
-              <button id="btn-actuator-off" type="button" class="control-btn control-btn-off w-full py-4 px-6 text-lg sm:text-xl">
-                DESACTIVAR OFF (0)
-              </button>
-            </div>
-
-          </div>
-
-          <!-- Barra Inferior de Sincronización -->
-          <div class="mt-8 pt-4 border-t flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm"
-               style="border-color: var(--border-color); color: var(--text-secondary);">
-            <span>Sincronización bidireccional activa (Pantalla 2 ↔ Pantalla 3)</span>
-            <span id="manual-last-sync" class="font-mono">Última sincronización: --:--:--</span>
-          </div>
-        </div>
-      </section>
-
-    </main>
+      </div>
+    </section>
 
     <!-- ======================================================================
-         FOOTER MINIMALISTA
+         PANTALLA 3: CONTROL (MODO MANUAL)
          ====================================================================== -->
-    <footer class="text-center text-xs sm:text-sm py-2" style="color: var(--text-muted)">
-      <span class="font-cyber tracking-wider">ESP32 / ESP8266 IOT INTERFACE</span> • API REST v2 ADAFRUIT IO
-    </footer>
+    <section id="screen-manual" class="screen">
+      <div class="screen-header">
+        <button id="btn-back-manual" class="icon-btn" type="button">← Regresar</button>
+        <h2 class="screen-title">Modo Manual</h2>
+        <div style="width: 96px;"></div>
+      </div>
 
-  </div>
+      <div class="manual-grid">
+        <!-- Grupo ON -> Envía 1 -> Relé 1 ON -->
+        <div class="control-unit">
+          <span class="panel-label">RELÉ 1 (GPIO 25)</span>
+          <div class="big-led led-on sync-led-on"></div>
+          <button id="btn-manual-on" class="action-btn btn-on" type="button">ON</button>
+        </div>
+
+        <!-- Grupo OFF -> Envía 0 -> Relé 2 ON -->
+        <div class="control-unit">
+          <span class="panel-label">RELÉ 2 (GPIO 26)</span>
+          <div class="big-led led-off sync-led-off active"></div>
+          <button id="btn-manual-off" class="action-btn btn-off" type="button">OFF</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <!-- ========================================================================
-       MODAL / PANEL DE CONFIGURACIÓN (ENGRANAJE)
+       MODAL 1: CONFIGURACIÓN ADAFRUIT IO Y TEMA (PANTALLA 1)
        ======================================================================== -->
-  <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-    <div class="cyber-panel w-full max-w-lg p-6 sm:p-8 shadow-2xl transform transition-all" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-
-      <!-- Cabecera Modal -->
-      <div class="flex items-center justify-between pb-4 mb-6 border-b" style="border-color: var(--border-color)">
-        <div class="flex items-center gap-2.5">
-          <span class="w-3 h-3 rounded-full" style="background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan);"></span>
-          <h2 id="modal-title" class="font-cyber text-lg sm:text-xl font-bold">
-            CONFIGURACIÓN DEL SISTEMA
-          </h2>
-        </div>
-        <button id="btn-close-settings" type="button" aria-label="Cerrar Configuración"
-                class="p-2 rounded-lg border text-sm font-bold hover:opacity-80 cursor-pointer"
-                style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary);">
-          ✕
-        </button>
+  <div id="modal-settings" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚙ CONFIGURACIÓN DEL SISTEMA</h3>
+        <button id="btn-close-settings" class="close-modal" type="button">&times;</button>
       </div>
 
-      <!-- Sección 1: Selector Tema Claro / Oscuro -->
-      <div class="flex items-center justify-between p-4 rounded-xl border mb-6"
-           style="background: var(--bg-input); border-color: var(--border-color);">
-        <div>
-          <p class="font-cyber text-sm font-bold">APARIENCIA VISUAL</p>
-          <p id="theme-label-text" class="text-xs sm:text-sm" style="color: var(--text-secondary)">
-            Modo Oscuro Cyberpunk (Activo)
-          </p>
-        </div>
-        <button id="btn-toggle-theme" type="button" class="theme-switch" aria-label="Cambiar entre modo claro y oscuro">
-          <span class="theme-switch-thumb"></span>
-        </button>
+      <div class="theme-switch-row">
+        <span style="font-weight: 700;">Apariencia Visual</span>
+        <button id="btn-toggle-theme" class="theme-toggle-btn" type="button">☀ Cambiar a Modo Claro</button>
       </div>
 
-      <!-- Sección 2: Credenciales Adafruit IO -->
-      <form id="adafruit-form" class="space-y-4">
-        <div>
-          <label for="input-aio-username" class="block font-cyber text-xs font-bold uppercase tracking-wider mb-1.5"
-                 style="color: var(--neon-cyan)">
-            Usuario de Adafruit IO (Username)
-          </label>
-          <input id="input-aio-username" type="text" autocomplete="username" placeholder="ej. maker_esp32"
-                 class="w-full px-4 py-3 rounded-xl border font-mono text-sm focus:outline-none transition-all"
-                 style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-primary);" />
-        </div>
-
-        <div>
-          <label for="input-aio-key" class="block font-cyber text-xs font-bold uppercase tracking-wider mb-1.5"
-                 style="color: var(--neon-cyan)">
-            Clave API (Active Key / AIO Key)
-          </label>
-          <div class="relative flex items-center">
-            <input id="input-aio-key" type="password" autocomplete="current-password" placeholder="aio_xxxxxxxxxxxxxxxxxxxxxxxx"
-                   class="w-full pl-4 pr-12 py-3 rounded-xl border font-mono text-sm focus:outline-none transition-all"
-                   style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-primary);" />
-            <button id="btn-toggle-key-visibility" type="button" aria-label="Mostrar u ocultar clave API"
-                    class="absolute right-3 p-1.5 rounded-lg text-xs font-bold cursor-pointer"
-                    style="color: var(--text-secondary);">
-              👁
-            </button>
+      <div class="form-group">
+        <label>Credenciales de Adafruit IO</label>
+        <div class="credentials-row">
+          <div class="credentials-fields">
+            <input id="input-aio-user" class="cyber-input" type="text" placeholder="Usuario (AIO Username)" autocomplete="off" />
+            <input id="input-aio-key" class="cyber-input" type="password" placeholder="Clave API (AIO Key)" autocomplete="off" />
           </div>
+          <button id="btn-connect-aio" class="connect-btn" type="button">Conectar</button>
         </div>
-
-        <!-- Botón Conectar y Estado -->
-        <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div class="flex items-center gap-2 text-sm font-semibold">
-            <span id="modal-status-dot" class="w-3 h-3 rounded-full bg-rose-500"></span>
-            <span id="modal-status-text" style="color: var(--text-secondary)">Estado: Desconectado</span>
-          </div>
-
-          <button id="btn-connect-aio" type="submit"
-                  class="px-6 py-3 rounded-xl font-cyber text-sm font-bold tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  style="background: var(--neon-cyan); color: #041019; box-shadow: 0 0 20px var(--neon-cyan-glow);">
-            CONECTAR
-          </button>
-        </div>
-      </form>
-
-      <!-- Modo Simulación / Demo para pruebas sin hardware -->
-      <div class="mt-6 pt-4 border-t flex flex-wrap items-center justify-between gap-3"
-           style="border-color: var(--border-color);">
-        <span class="text-xs" style="color: var(--text-secondary)">
-          ¿Sin placa ESP conectada aún?
-        </span>
-        <button id="btn-demo-mode" type="button"
-                class="px-3.5 py-2 rounded-lg font-cyber text-xs font-bold border transition-all hover:opacity-90 cursor-pointer"
-                style="border-color: var(--neon-magenta); color: var(--neon-magenta); background: rgba(255, 0, 234, 0.08);">
-          ACTIVAR SIMULACIÓN DEMO
-        </button>
       </div>
 
+      <p id="modal-conn-status" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 8px;">
+        Estado: Esperando credenciales...
+      </p>
     </div>
   </div>
 
   <!-- ========================================================================
-       MODAL EXCLUSIVO PANTALLA 2: TEMPERATURA LÍMITE (UMBRAL °C)
+       MODAL 2: TEMPERATURA LÍMITE / UMBRAL (PANTALLA 2)
        ======================================================================== -->
-  <div id="threshold-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-    <div class="cyber-panel w-full max-w-md p-6 sm:p-8 shadow-2xl transform transition-all" role="dialog" aria-modal="true" aria-labelledby="threshold-modal-title">
-
-      <!-- Cabecera Modal Umbral -->
-      <div class="flex items-center justify-between pb-4 mb-6 border-b" style="border-color: var(--border-color)">
-        <div class="flex items-center gap-2.5">
-          <span class="w-3 h-3 rounded-full" style="background: var(--neon-magenta); box-shadow: 0 0 10px var(--neon-magenta);"></span>
-          <h2 id="threshold-modal-title" class="font-cyber text-base sm:text-lg font-bold">
-            TEMPERATURA LÍMITE
-          </h2>
-        </div>
-        <button id="btn-close-threshold" type="button" aria-label="Cerrar Configuración de Umbral"
-                class="p-2 rounded-lg border text-sm font-bold hover:opacity-80 cursor-pointer"
-                style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary);">
-          ✕
-        </button>
+  <div id="modal-threshold" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🌡 TEMPERATURA LÍMITE (UMBRAL)</h3>
+        <button id="btn-close-threshold" class="close-modal" type="button">&times;</button>
       </div>
 
-      <form id="threshold-form" class="space-y-5">
-        <p class="text-sm leading-relaxed" style="color: var(--text-secondary)">
-          Define el umbral de activación en <strong>Modo Automático</strong>. Si el promedio supera este límite, se activa el <strong>Relé 1 (ON)</strong>; de lo contrario, se activa el <strong>Relé 2 (OFF)</strong>.
-        </p>
-
-        <!-- Controles Rápidos y Campo Numérico -->
-        <div>
-          <label for="input-threshold-temp" class="block font-cyber text-xs font-bold uppercase tracking-wider mb-2"
-                 style="color: var(--neon-cyan)">
-            Umbral de Disparo (°C) • Feed: <span id="label-feed-umbral" class="font-mono">umbral</span>
-          </label>
-
-          <div class="flex items-center gap-2.5">
-            <button type="button" id="btn-threshold-minus"
-                    class="px-4 py-3 rounded-xl font-cyber text-base font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                    style="background: var(--bg-input); border-color: var(--border-strong); color: var(--neon-cyan);">
-              -1°
-            </button>
-
-            <input id="input-threshold-temp" type="number" step="0.5" min="-55" max="125" required
-                   class="w-full px-4 py-3 rounded-xl border font-cyber text-xl font-bold text-center focus:outline-none transition-all"
-                   style="background: var(--bg-input); border-color: var(--neon-magenta); color: var(--text-primary);" />
-
-            <button type="button" id="btn-threshold-plus"
-                    class="px-4 py-3 rounded-xl font-cyber text-base font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                    style="background: var(--bg-input); border-color: var(--border-strong); color: var(--neon-cyan);">
-              +1°
-            </button>
-          </div>
+      <div class="form-group">
+        <label for="input-threshold">Valor de disparo en °C (Feed: umbral)</label>
+        <div class="credentials-row">
+          <input id="input-threshold" class="cyber-input" type="number" step="0.5" min="-20" max="125" value="32.0" />
+          <button id="btn-save-threshold" class="connect-btn" type="button">Guardar</button>
         </div>
-
-        <div class="pt-2 flex items-center justify-end gap-3">
-          <button type="button" id="btn-cancel-threshold"
-                  class="px-4 py-3 rounded-xl font-cyber text-xs font-bold border cursor-pointer"
-                  style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-secondary);">
-            CANCELAR
-          </button>
-          <button id="btn-save-threshold" type="submit"
-                  class="px-6 py-3 rounded-xl font-cyber text-xs sm:text-sm font-bold tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  style="background: var(--neon-magenta); color: #ffffff; box-shadow: 0 0 20px var(--neon-magenta-glow);">
-            GUARDAR UMBRAL
-          </button>
-        </div>
-      </form>
-
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">
+        Si la temperatura del sensor Dallas supera este límite en Modo Automático, se activará el Relé 1 (ON).
+      </p>
     </div>
   </div>
 
-  <!-- ========================================================================
-       CONTENEDOR DE NOTIFICACIONES TOAST FUTURISTAS
-       ======================================================================== -->
-  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+  <!-- Notificación Flotante -->
+  <div id="toast" class="toast-box"></div>
 
   <!-- ========================================================================
-       LÓGICA JAVASCRIPT (ADAFRUIT IO REST API + SPA + FONDO 3D INTERACTIVO)
+       LÓGICA JAVASCRIPT (ADAFRUIT IO REST API + NAVEGACIÓN SPA + CANVAS 3D)
        ======================================================================== -->
   <script>
-    /**
-     * ========================================================================
-     * 1. CONFIGURACIÓN DE FEEDS DE ADAFRUIT IO (FÁCIL DE EDITAR)
-     * ========================================================================
-     * Cambia aquí los "Feed Keys" (identificadores) si en tu cuenta de
-     * Adafruit IO tienen otros nombres.
-     */
-    const CONFIG = {
-      BASE_URL: 'https://io.adafruit.com/api/v2',
-      POLLING_INTERVAL_MS: 2500, // Actualización cada 2.5 segundos
-      FEEDS: {
-        MODO: 'modo',             // Envío Web -> ESP: 0 = Automático (Relé 3 OFF), 1 = Manual (Relé 3 ON)
-        DALLAS: 'dallas',         // Recepción ESP -> Web: Promedio temperatura DS18B20
-        ACTUADOR: 'estado-luz',   // Bidireccional: 1 = Relé 1 ON / Relé 2 OFF, 0 = Relé 1 OFF / Relé 2 ON
-        UMBRAL: 'umbral'          // Bidireccional: Temperatura límite (°C) para modo automático
-      }
-    };
+    (function () {
+      "use strict";
 
-    /**
-     * ========================================================================
-     * 2. ESTADO GLOBAL REACTIVO DE LA APLICACIÓN
-     * ========================================================================
-     */
-    const state = {
-      theme: localStorage.getItem('cyber_iot_theme') || 'dark',
-      username: localStorage.getItem('cyber_iot_username') || '',
-      aioKey: localStorage.getItem('cyber_iot_key') || '',
-      isConnected: false,
-      isDemoMode: false,
-      currentScreen: 'menu',      // 'menu' | 'auto' | 'manual'
-      currentModeValue: null,     // 0 (auto) | 1 (manual)
-      dallasTemp: null,           // Último promedio de temperatura recibido (°C)
-      umbralTemp: parseFloat(localStorage.getItem('cyber_iot_umbral')) || 32.0,
-      actuatorState: 0,           // Fuente única de verdad: 1 = Relé 1 ON, 0 = Relé 2 ON
-      pollTimer: null,
-      demoTempBase: 30.8
-    };
-// ... existing code ... -->
-    function syncActuatorUI() {
-      const isOn = Number(state.actuatorState) === 1;
-
-      document.querySelectorAll('.js-led-on').forEach(el => {
-        el.classList.toggle('active', isOn);
-      });
-
-      document.querySelectorAll('.js-led-off').forEach(el => {
-        el.classList.toggle('active', !isOn);
-      });
-
-      const autoText = document.getElementById('auto-actuator-text');
-      if (autoText) {
-        autoText.textContent = isOn
-          ? 'RELÉ 1 ENCENDIDO / ON (1)'
-          : 'RELÉ 2 ENCENDIDO / OFF (0)';
-        autoText.style.color = isOn ? 'var(--neon-green)' : 'var(--neon-red)';
-      }
-    }
-
-    function updateThresholdUI(value) {
-      const num = parseFloat(value);
-      if (!isNaN(num)) {
-        state.umbralTemp = num;
-        localStorage.setItem('cyber_iot_umbral', num.toFixed(1));
-        const badge = document.getElementById('badge-threshold-display');
-        const barLabel = document.getElementById('bar-threshold-label');
-        if (badge) badge.textContent = `LÍMITE: ${num.toFixed(1)} °C`;
-        if (barLabel) barLabel.textContent = `Umbral: ${num.toFixed(1)}°C`;
-      }
-    }
-
-    function updateDallasUI(value) {
-// ... existing code ... -->
-    // Enviar dato (POST) a un feed específico
-    async function sendFeedValue(feedKey, value) {
-      if (state.isDemoMode) {
-        // Simulación local instantánea en modo Demo
-        if (feedKey === CONFIG.FEEDS.MODO) {
-          state.currentModeValue = Number(value);
-        } else if (feedKey === CONFIG.FEEDS.ACTUADOR) {
-          state.actuatorState = Number(value);
-          syncActuatorUI();
-          updateTimestamps();
-        } else if (feedKey === CONFIG.FEEDS.UMBRAL) {
-          updateThresholdUI(value);
-          if (state.currentScreen === 'auto' && state.dallasTemp !== null) {
-            state.actuatorState = state.dallasTemp > state.umbralTemp ? 1 : 0;
-            syncActuatorUI();
-          }
+      /* ----------------------------------------------------------------------
+         1. CONFIGURACIÓN EDITABLE DE FEEDS DE ADAFRUIT IO
+         ---------------------------------------------------------------------- */
+      const CONFIG = {
+        BASE_URL: "https://io.adafruit.com/api/v2",
+        POLL_INTERVAL_MS: 2500,
+        FEEDS: {
+          MODO: "modo",            // 0 = Automático (Relé 3 OFF), 1 = Manual (Relé 3 ON)
+          DALLAS: "dallas",        // Lectura temperatura DS18B20 desde ESP32
+          ESTADO_LUZ: "estado-luz",// 1 = Relé 1 ON / Relé 2 OFF, 0 = Relé 1 OFF / Relé 2 ON
+          UMBRAL: "umbral"         // Temperatura límite editable desde Pantalla 2
         }
-        return true;
+      };
+
+      /* ----------------------------------------------------------------------
+         2. ESTADO GLOBAL DE LA APLICACIÓN
+         ---------------------------------------------------------------------- */
+      const state = {
+        username: localStorage.getItem("aio_username") || "",
+        aioKey: localStorage.getItem("aio_key") || "",
+        theme: localStorage.getItem("cyber_theme") || "dark",
+        connected: false,
+        actuatorOn: false,
+        threshold: parseFloat(localStorage.getItem("aio_threshold")) || 32.0,
+        pollTimer: null
+      };
+
+      /* ----------------------------------------------------------------------
+         3. REFERENCIAS AL DOM
+         ---------------------------------------------------------------------- */
+      const screens = {
+        menu: document.getElementById("screen-menu"),
+        auto: document.getElementById("screen-auto"),
+        manual: document.getElementById("screen-manual")
+      };
+
+      const el = {
+        connPill: document.getElementById("connection-pill"),
+        connText: document.getElementById("connection-text"),
+        modalConnStatus: document.getElementById("modal-conn-status"),
+        inputUser: document.getElementById("input-aio-user"),
+        inputKey: document.getElementById("input-aio-key"),
+        inputThreshold: document.getElementById("input-threshold"),
+        dallasValue: document.getElementById("dallas-value"),
+        thresholdDisplay: document.getElementById("threshold-display"),
+        btnToggleTheme: document.getElementById("btn-toggle-theme"),
+        modalSettings: document.getElementById("modal-settings"),
+        modalThreshold: document.getElementById("modal-threshold"),
+        toast: document.getElementById("toast")
+      };
+
+      /* ----------------------------------------------------------------------
+         4. UTILIDADES DE INTERFAZ (TOAST, TEMA, LUCES SINCRONIZADAS, NAVEGACIÓN)
+         ---------------------------------------------------------------------- */
+      let toastTimeout = null;
+      function showToast(msg, type = "info") {
+        el.toast.textContent = msg;
+        el.toast.className = `toast-box show ${type}`;
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          el.toast.classList.remove("show");
+        }, 3200);
       }
 
-      if (!hasCredentials()) {
-// ... existing code ... -->
-    // Ciclo de Polling en tiempo real (cada 2.5s)
-    async function pollTelemetry() {
-      // Modo Demo Simulado
-      if (state.isDemoMode) {
-        state.demoTempBase += (Math.random() - 0.48) * 0.45;
-        state.demoTempBase = Math.max(18, Math.min(45, state.demoTempBase));
-        updateDallasUI(state.demoTempBase);
+      function applyTheme(themeName) {
+        state.theme = themeName;
+        document.documentElement.setAttribute("data-theme", themeName);
+        localStorage.setItem("cyber_theme", themeName);
+        el.btnToggleTheme.textContent =
+          themeName === "dark" ? "☀ Cambiar a Modo Claro" : "🌙 Cambiar a Modo Oscuro";
+      }
 
-        // En modo automático demo, comparar contra el umbral configurado
-        if (state.currentScreen === 'auto') {
-          state.actuatorState = state.demoTempBase > state.umbralTemp ? 1 : 0;
+      function updateConnectionUI(isConnected, detailText = "") {
+        state.connected = isConnected;
+        if (isConnected) {
+          el.connPill.classList.add("connected");
+          el.connText.textContent = `Conectado (${state.username})`;
+          el.modalConnStatus.textContent = detailText || "Estado: Conectado correctamente a Adafruit IO.";
+          el.modalConnStatus.style.color = "var(--neon-green)";
+        } else {
+          el.connPill.classList.remove("connected");
+          el.connText.textContent = "Desconectado";
+          el.modalConnStatus.textContent = detailText || "Estado: Desconectado.";
+          el.modalConnStatus.style.color = "var(--neon-red)";
         }
-        syncActuatorUI();
-        updateTimestamps();
-        return;
       }
 
-      if (!state.isConnected || !hasCredentials()) return;
+      // Sincroniza las luces ON/OFF en Pantalla 2 y Pantalla 3 simultáneamente
+      function syncLedsUI(isOn) {
+        state.actuatorOn = isOn;
+        document.querySelectorAll(".sync-led-on").forEach((led) => {
+          led.classList.toggle("active", isOn);
+        });
+        document.querySelectorAll(".sync-led-off").forEach((led) => {
+          led.classList.toggle("active", !isOn);
+        });
+      }
 
-      try {
-        // Consultar en paralelo temperatura Dallas, estado del actuador y umbral
-        const [dallasRes, actuatorRes, umbralRes] = await Promise.allSettled([
-          fetchLastFeedValue(CONFIG.FEEDS.DALLAS),
-          fetchLastFeedValue(CONFIG.FEEDS.ACTUADOR),
-          fetchLastFeedValue(CONFIG.FEEDS.UMBRAL)
-        ]);
+      function navigateTo(screenKey) {
+        Object.values(screens).forEach((s) => s.classList.remove("active"));
+        if (screens[screenKey]) {
+          screens[screenKey].classList.add("active");
+        }
+      }
 
-        if (dallasRes.status === 'fulfilled') {
-          updateDallasUI(dallasRes.value);
+      /* ----------------------------------------------------------------------
+         5. COMUNICACIÓN CON ADAFRUIT IO (API REST FETCH)
+         ---------------------------------------------------------------------- */
+      function hasCredentials() {
+        return state.username.trim().length > 0 && state.aioKey.trim().length > 0;
+      }
+
+      async function sendToFeed(feedKey, value) {
+        if (!hasCredentials()) {
+          showToast("⚠ Configura tu Usuario y AIO Key primero (Engranaje ⚙)", "error");
+          el.modalSettings.classList.add("open");
+          return false;
         }
 
-        if (actuatorRes.status === 'fulfilled') {
-          const parsedState = Number(actuatorRes.value) === 1 ? 1 : 0;
-          state.actuatorState = parsedState;
-          syncActuatorUI();
-        }
-
-        if (umbralRes.status === 'fulfilled' && !thresholdModalEl.classList.contains('flex')) {
-          updateThresholdUI(umbralRes.value);
-        }
-
-        updateTimestamps();
-      } catch (err) {
-        console.warn('[Polling Warning]:', err);
-      }
-    }
-// ... existing code ... -->
-    const modalEl = document.getElementById('settings-modal');
-    const thresholdModalEl = document.getElementById('threshold-modal');
-
-    function openSettingsModal() {
-      document.getElementById('input-aio-username').value = state.username;
-      document.getElementById('input-aio-key').value = state.aioKey;
-      modalEl.classList.remove('hidden');
-      modalEl.classList.add('flex');
-    }
-
-    function closeSettingsModal() {
-      modalEl.classList.add('hidden');
-      modalEl.classList.remove('flex');
-    }
-
-    function openThresholdModal() {
-      document.getElementById('input-threshold-temp').value = state.umbralTemp.toFixed(1);
-      thresholdModalEl.classList.remove('hidden');
-      thresholdModalEl.classList.add('flex');
-    }
-
-    function closeThresholdModal() {
-      thresholdModalEl.classList.add('hidden');
-      thresholdModalEl.classList.remove('flex');
-    }
-
-    // Mostrar nombres de feeds configurados en la UI
-    document.getElementById('label-feed-dallas').textContent = CONFIG.FEEDS.DALLAS;
-    document.getElementById('label-feed-actuator-auto').textContent = CONFIG.FEEDS.ACTUADOR;
-    document.getElementById('label-feed-actuator-manual').textContent = CONFIG.FEEDS.ACTUADOR;
-    document.getElementById('label-feed-umbral').textContent = CONFIG.FEEDS.UMBRAL;
-
-    // Abrir / Cerrar Modal de Configuración
-    document.getElementById('btn-open-settings').addEventListener('click', openSettingsModal);
-    document.getElementById('btn-close-settings').addEventListener('click', closeSettingsModal);
-    modalEl.addEventListener('click', (e) => {
-      if (e.target === modalEl) closeSettingsModal();
-    });
-
-    // Abrir / Cerrar Modal de Temperatura Límite (Solo en Pantalla 2)
-    document.getElementById('btn-open-threshold').addEventListener('click', openThresholdModal);
-    document.getElementById('btn-close-threshold').addEventListener('click', closeThresholdModal);
-    document.getElementById('btn-cancel-threshold').addEventListener('click', closeThresholdModal);
-    thresholdModalEl.addEventListener('click', (e) => {
-      if (e.target === thresholdModalEl) closeThresholdModal();
-    });
-
-    document.getElementById('btn-threshold-minus').addEventListener('click', () => {
-      const input = document.getElementById('input-threshold-temp');
-      const current = parseFloat(input.value) || state.umbralTemp;
-      input.value = Math.max(-55, current - 1).toFixed(1);
-    });
-
-    document.getElementById('btn-threshold-plus').addEventListener('click', () => {
-      const input = document.getElementById('input-threshold-temp');
-      const current = parseFloat(input.value) || state.umbralTemp;
-      input.value = Math.min(125, current + 1).toFixed(1);
-    });
-
-    document.getElementById('threshold-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const input = document.getElementById('input-threshold-temp');
-      const newLimit = parseFloat(input.value);
-
-      if (isNaN(newLimit) || newLimit < -55 || newLimit > 125) {
-        showToast('Ingresa una temperatura límite válida entre -55°C y 125°C.', 'warning');
-        return;
-      }
-
-      const btnSave = document.getElementById('btn-save-threshold');
-      const originalText = btnSave.textContent;
-      btnSave.textContent = 'ENVIANDO...';
-      btnSave.disabled = true;
-
-      const ok = await sendFeedValue(CONFIG.FEEDS.UMBRAL, newLimit.toFixed(1));
-      if (ok) {
-        updateThresholdUI(newLimit);
-        showToast(`Temperatura límite actualizada a ${newLimit.toFixed(1)} °C.`, 'success');
-        closeThresholdModal();
-        pollTelemetry();
-      }
-
-      btnSave.textContent = originalText;
-      btnSave.disabled = false;
-    });
-// ... existing code ... -->
-    window.onload = async function () {
-      applyTheme(state.theme);
-      updateThresholdUI(state.umbralTemp);
-      initCyberBackground();
-      syncActuatorUI();
-
-      // Si existen credenciales guardadas en localStorage, intentar auto-conectar
-      if (hasCredentials()) {
+        const url = `${CONFIG.BASE_URL}/${encodeURIComponent(state.username)}/feeds/${encodeURIComponent(feedKey)}/data`;
         try {
-          await validateAdafruitConnection(state.username, state.aioKey);
-          state.isConnected = true;
-          updateConnectionUI();
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-AIO-Key": state.aioKey
+            },
+            body: JSON.stringify({ value: String(value) })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return true;
+        } catch (err) {
+          console.error(`Error enviando a ${feedKey}:`, err);
+          showToast(`Error al enviar dato a "${feedKey}": ${err.message}`, "error");
+          return false;
+        }
+      }
+
+      async function fetchLastFeedValue(feedKey) {
+        const url = `${CONFIG.BASE_URL}/${encodeURIComponent(state.username)}/feeds/${encodeURIComponent(feedKey)}/data/last`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "X-AIO-Key": state.aioKey
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        return data.value;
+      }
+
+      async function validateConnection() {
+        const user = el.inputUser.value.trim();
+        const key = el.inputKey.value.trim();
+
+        if (!user || !key) {
+          showToast("Ingresa tu Usuario y Clave API de Adafruit IO", "error");
+          return;
+        }
+
+        state.username = user;
+        state.aioKey = key;
+        localStorage.setItem("aio_username", user);
+        localStorage.setItem("aio_key", key);
+
+        el.modalConnStatus.textContent = "Conectando con Adafruit IO...";
+        el.modalConnStatus.style.color = "var(--neon-cyan)";
+
+        try {
+          const res = await fetch(`${CONFIG.BASE_URL}/${encodeURIComponent(user)}`, {
+            headers: { "X-AIO-Key": key }
+          });
+
+          if (!res.ok) {
+            throw new Error("Credenciales inválidas o usuario no encontrado");
+          }
+
+          updateConnectionUI(true, "Estado: ¡Conexión verificada con Adafruit IO!");
+          showToast("✅ Conectado a Adafruit IO", "success");
           startPolling();
         } catch (err) {
-          state.isConnected = false;
-          updateConnectionUI();
+          updateConnectionUI(false, `Error: ${err.message}`);
+          showToast(`❌ ${err.message}`, "error");
         }
-      } else {
-        updateConnectionUI();
       }
-    };
+
+      async function pollFeeds() {
+        if (!hasCredentials() || !state.connected) return;
+
+        try {
+          // 1. Leer temperatura Dallas DS18B20
+          const tempVal = await fetchLastFeedValue(CONFIG.FEEDS.DALLAS);
+          const parsedTemp = parseFloat(tempVal);
+          if (!isNaN(parsedTemp)) {
+            el.dallasValue.textContent = `${parsedTemp.toFixed(1)} °C`;
+          }
+
+          // 2. Leer estado bidireccional del actuador (Relé 1 / Relé 2)
+          const lightVal = await fetchLastFeedValue(CONFIG.FEEDS.ESTADO_LUZ);
+          const isOn = String(lightVal).trim() === "1";
+          syncLedsUI(isOn);
+
+          // 3. Leer umbral si existe en Adafruit IO
+          try {
+            const umbralVal = await fetchLastFeedValue(CONFIG.FEEDS.UMBRAL);
+            const parsedUmbral = parseFloat(umbralVal);
+            if (!isNaN(parsedUmbral)) {
+              state.threshold = parsedUmbral;
+              el.thresholdDisplay.textContent = `Límite de disparo: ${parsedUmbral.toFixed(1)} °C`;
+            }
+          } catch (_) {
+            // Si el feed umbral aún no tiene datos, conserva el valor local
+          }
+        } catch (err) {
+          console.warn("Aviso en polling:", err.message);
+        }
+      }
+
+      function startPolling() {
+        if (state.pollTimer) clearInterval(state.pollTimer);
+        pollFeeds();
+        state.pollTimer = setInterval(pollFeeds, CONFIG.POLL_INTERVAL_MS);
+      }
+
+      /* ----------------------------------------------------------------------
+         6. EVENTOS DE BOTONES Y MODALES
+         ---------------------------------------------------------------------- */
+      // Abrir / Cerrar Modal Configuración Principal
+      document.getElementById("btn-open-settings").addEventListener("click", () => {
+        el.modalSettings.classList.add("open");
+      });
+      document.getElementById("btn-close-settings").addEventListener("click", () => {
+        el.modalSettings.classList.remove("open");
+      });
+
+      // Cambiar Tema Claro / Oscuro
+      el.btnToggleTheme.addEventListener("click", () => {
+        applyTheme(state.theme === "dark" ? "light" : "dark");
+      });
+
+      // Botón Conectar Adafruit IO
+      document.getElementById("btn-connect-aio").addEventListener("click", validateConnection);
+
+      // Pantalla 1 -> Modo Automático (Envía 0 -> Relé 3 OFF -> Pantalla 2)
+      document.getElementById("btn-mode-auto").addEventListener("click", async () => {
+        const ok = await sendToFeed(CONFIG.FEEDS.MODO, 0);
+        if (ok) {
+          showToast("🤖 Modo Automático activado (0 enviado)", "success");
+          navigateTo("auto");
+          pollFeeds();
+        }
+      });
+
+      // Pantalla 1 -> Modo Manual (Envía 1 -> Relé 3 ON -> Pantalla 3)
+      document.getElementById("btn-mode-manual").addEventListener("click", async () => {
+        const ok = await sendToFeed(CONFIG.FEEDS.MODO, 1);
+        if (ok) {
+          showToast("🎛️ Modo Manual activado (1 enviado)", "success");
+          navigateTo("manual");
+          pollFeeds();
+        }
+      });
+
+      // Botones Regresar a Pantalla 1
+      document.getElementById("btn-back-auto").addEventListener("click", () => navigateTo("menu"));
+      document.getElementById("btn-back-manual").addEventListener("click", () => navigateTo("menu"));
+
+      // Pantalla 2 -> Modal Temperatura Límite (Umbral)
+      document.getElementById("btn-open-threshold").addEventListener("click", () => {
+        el.inputThreshold.value = state.threshold.toFixed(1);
+        el.modalThreshold.classList.add("open");
+      });
+      document.getElementById("btn-close-threshold").addEventListener("click", () => {
+        el.modalThreshold.classList.remove("open");
+      });
+      document.getElementById("btn-save-threshold").addEventListener("click", async () => {
+        const newLimit = parseFloat(el.inputThreshold.value);
+        if (isNaN(newLimit)) {
+          showToast("Ingresa una temperatura válida", "error");
+          return;
+        }
+        const ok = await sendToFeed(CONFIG.FEEDS.UMBRAL, newLimit.toFixed(1));
+        if (ok) {
+          state.threshold = newLimit;
+          localStorage.setItem("aio_threshold", newLimit);
+          el.thresholdDisplay.textContent = `Límite de disparo: ${newLimit.toFixed(1)} °C`;
+          el.modalThreshold.classList.remove("open");
+          showToast(`🌡 Umbral actualizado a ${newLimit.toFixed(1)} °C`, "success");
+        }
+      });
+
+      // Pantalla 3 -> Botones Manuales ON (1) y OFF (0)
+      document.getElementById("btn-manual-on").addEventListener("click", async () => {
+        const ok = await sendToFeed(CONFIG.FEEDS.ESTADO_LUZ, 1);
+        if (ok) {
+          syncLedsUI(true);
+          showToast("🟢 Relé 1 ENCENDIDO (1 enviado)", "success");
+        }
+      });
+
+      document.getElementById("btn-manual-off").addEventListener("click", async () => {
+        const ok = await sendToFeed(CONFIG.FEEDS.ESTADO_LUZ, 0);
+        if (ok) {
+          syncLedsUI(false);
+          showToast("🔴 Relé 2 ENCENDIDO / Relé 1 APAGADO (0 enviado)", "success");
+        }
+      });
+
+      // Cerrar modales al hacer clic fuera del cuadro
+      [el.modalSettings, el.modalThreshold].forEach((backdrop) => {
+        backdrop.addEventListener("click", (e) => {
+          if (e.target === backdrop) backdrop.classList.remove("open");
+        });
+      });
+
+      /* ----------------------------------------------------------------------
+         7. FONDO 3D INTERACTIVO EN CANVAS (MALLA PERSPECTIVA + PARTÍCULAS)
+         ---------------------------------------------------------------------- */
+      const canvas = document.getElementById("cyber-canvas");
+      const ctx = canvas.getContext("2d");
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+      let gridOffset = 0;
+
+      const particles = Array.from({ length: 48 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 2.2 + 0.8,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6
+      }));
+
+      window.addEventListener("resize", () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      function renderBackground() {
+        ctx.clearRect(0, 0, width, height);
+        const isDark = state.theme === "dark";
+        const lineColor = isDark ? "rgba(0, 243, 255, 0.16)" : "rgba(0, 119, 182, 0.14)";
+        const dotColor = isDark ? "rgba(255, 0, 127, 0.65)" : "rgba(201, 24, 74, 0.5)";
+
+        // Horizonte 3D inferior
+        const horizon = height * 0.62;
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 1;
+
+        for (let i = -12; i <= 12; i++) {
+          ctx.beginPath();
+          ctx.moveTo(width / 2 + i * 45, horizon);
+          ctx.lineTo(width / 2 + i * 240, height);
+          ctx.stroke();
+        }
+
+        gridOffset = (gridOffset + 0.65) % 36;
+        for (let y = horizon; y < height; y += 36) {
+          const yPos = y + gridOffset * ((y - horizon) / (height - horizon));
+          ctx.beginPath();
+          ctx.moveTo(0, yPos);
+          ctx.lineTo(width, yPos);
+          ctx.stroke();
+        }
+
+        // Partículas flotantes
+        ctx.fillStyle = dotColor;
+        particles.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > width) p.vx *= -1;
+          if (p.y < 0 || p.y > height) p.vy *= -1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        requestAnimationFrame(renderBackground);
+      }
+
+      /* ----------------------------------------------------------------------
+         8. INICIALIZACIÓN AL CARGAR LA PÁGINA
+         ---------------------------------------------------------------------- */
+      applyTheme(state.theme);
+      el.thresholdDisplay.textContent = `Límite de disparo: ${state.threshold.toFixed(1)} °C`;
+      syncLedsUI(false);
+      renderBackground();
+
+      if (hasCredentials()) {
+        el.inputUser.value = state.username;
+        el.inputKey.value = state.aioKey;
+        validateConnection();
+      }
+    })();
   </script>
 </body>
 </html>
